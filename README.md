@@ -1,3 +1,5 @@
+# THIS IS STILL WORK IN PROGRESS
+
 # CAN_RW_CANsub
 
 LabVIEW class that reads and writes CAN frames with CCS CANsub devices. `CAN RW CANsub.lvclass` inherits from [CAN_RW_Core](https://github.com/CIF-Foundation/CAN_RW_Core), in parallel with [CAN_RW_XNET](https://github.com/CIF-Foundation/CAN_RW_XNET).
