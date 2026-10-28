@@ -1,0 +1,6 @@
+Package: lv-cansub
+Version: 1.0.0.0
+Architecture: amd64
+Maintainer: todd.walter@domeautomation.com
+Description: This provides the required libraries to support CAN read and write with CCS CANsub devices from LabVIEW.
+Priority: optional

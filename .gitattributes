@@ -1,0 +1,4 @@
+*.sh text eol=lf
+Installers/opkg-utils/opkg-build text eol=lf
+Installers/lv_cansub_deb/DEBIAN/* text eol=lf
+Installers/lv_cansub_ipk/CONTROL/* text eol=lf

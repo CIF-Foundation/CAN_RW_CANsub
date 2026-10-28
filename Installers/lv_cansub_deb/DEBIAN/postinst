@@ -1,0 +1,4 @@
+#!/bin/sh
+chmod 777 /usr/lib/cif/libcansub_lv_wrapper.so
+ln -sfn /usr/lib/cif/libcansub_lv_wrapper.so /usr/lib/libcansub_lv_wrapper.so
+ldconfig

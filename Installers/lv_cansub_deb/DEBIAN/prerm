@@ -1,0 +1,2 @@
+#!/bin/sh
+unlink /usr/lib/libcansub_lv_wrapper.so
