@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P3-RT loop F wiring</title>
+<style>
+  body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; background: #fff; color: #222; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; }
+  p { font-size: 13px; color: #555; margin: 0 0 16px; max-width: 1100px; }
+  #lf svg { max-width: none !important; }
+  .note { margin-top: 16px; font-size: 13px; color: #444; }
+  .note li { margin: 2px 0; }
+</style>
+</head>
+<body>
+<h1>P3-RT Test_C_RT_Path.vi: loop F wiring (steps a to i)</h1>
+<p>Loop F runs inside loop B, after W13 C_Decode_RT, with N = n frames. i = frame index in this read; k = count (input frame number over the whole run). Needs an internet connection to load the Mermaid renderer (cdn.jsdelivr.net).</p>
+<div id="lf">Loading diagram...</div>
+<div class="note">
+<b>Not drawn, to keep it readable:</b>
+<ul>
+  <li>The loop's <code>i</code> terminal feeds: both Index Arrays in step d, the Multiply in step e, and W14 C_Echo_RT <code>index</code>.</li>
+  <li><code>n frames</code> feeds loop F's N and W14 C_Echo_RT <code>n frames</code>.</li>
+  <li>The counter shift registers (frame mm, echo mm, encode mm): left side &rarr; the "+1" step &rarr; right side.</li>
+</ul>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: false, theme: 'default', flowchart: { curve: 'basis', nodeSpacing: 22, rankSpacing: 40 } });
+const src = `flowchart LR
+  subgraph IN["Into loop F"]
+    INF["in frames"]
+    BUF["buffers out"]
+    K["SR count = k"]
+    TX["SR tx"]
+    ER["SR error"]
+  end
+  subgraph A["a  input frame k"]
+    IA1["Index Array (k)"] --> UB1["Unbundle By Name<br/>id ide fdf brs data"]
+    UB1 -->|"sent"| AS1["Array Size = n"]
+  end
+  subgraph B["b, d, e  received frame i"]
+    UB2["Unbundle By Name<br/>id flags data len data"]
+    UB2 --> IAid["Index Array (i)<br/>rx id"]
+    UB2 --> IAfl["Index Array (i)<br/>flags"] --> NBA["Num To Bool Array<br/>idx 0 1 3"]
+    UB2 --> ASr["Array Subset<br/>data, i x 64, n"]
+  end
+  subgraph C["c  reference"]
+    W10["W10 C_Encode_CAN_to_WS<br/>= ref"]
+  end
+  subgraph F["f  frame check"]
+    CMP["5 x Equal?<br/>id ide fdf brs data"] --> AND["And, 5 inputs"] --> FM["+1 if not ok<br/>frame mm"]
+  end
+  subgraph G["g  echo"]
+    W14["W14 C_Echo_RT<br/>new id = rx id, index = i"] --> EQe["Array Subset (0, length)<br/>Equal? ref"] --> EM["+1 if not equal<br/>echo mm"]
+  end
+  subgraph H["h  encode"]
+    W15["W15 C_Encode_RT<br/>input frame k"] --> EQn["Array Subset (0, length)<br/>Equal? ref"] --> NM["+1 if not equal<br/>encode mm"]
+  end
+  subgraph I["i  next"]
+    INC["Increment k"]
+  end
+  INF --> IA1
+  K --> IA1
+  K --> INC
+  BUF --> UB2
+  AS1 -->|"n"| ASr
+  UB1 -->|"in id ide fdf brs, sent"| W10
+  UB1 -->|"in fields, sent"| CMP
+  IAid --> CMP
+  NBA --> CMP
+  ASr -->|"rx data"| CMP
+  IAid -->|"new id"| W14
+  UB2 -->|"flags, data len, data"| W14
+  UB1 -->|"in fields, sent"| W15
+  W10 -->|"ref"| EQe
+  W10 -->|"ref"| EQn
+  TX -->|"tx"| W14
+  W14 -->|"tx out"| W15
+  W15 -->|"tx out to SR"| OUTTX["SR tx (right)"]
+  INC --> OUTK["SR count (right)"]
+  ER -->|"error"| W10
+  W10 -->|"error"| W14
+  W14 -->|"error"| W15
+  W15 -->|"error"| OUTE["SR error (right)"]`;
+const { svg } = await mermaid.render('lf-svg', src);
+document.getElementById('lf').innerHTML = svg;
+</script>
+</body>
+</html>
