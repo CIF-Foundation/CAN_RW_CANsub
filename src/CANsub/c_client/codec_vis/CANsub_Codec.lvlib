@@ -4,6 +4,7 @@
 	<Property Name="NI.Lib.SourceVersion" Type="Int">620789760</Property>
 	<Property Name="NI.Lib.Version" Type="Str">1.0.0.0</Property>
 	<Property Name="NI.LV.All.SourceOnly" Type="Bool">true</Property>
+	<Property Name="NI.SortType" Type="Int">3</Property>
 	<Item Name="CANsub_Codec_LibPath.vi" Type="VI" URL="../VIs/CANsub_Codec_LibPath.vi"/>
 	<Item Name="csb bit timing.vi" Type="VI" URL="../VIs/csb bit timing.vi"/>
 	<Item Name="csb can deserialize.vi" Type="VI" URL="../VIs/csb can deserialize.vi"/>
@@ -14,6 +15,7 @@
 	<Item Name="csb encode pcap to ws.vi" Type="VI" URL="../VIs/csb encode pcap to ws.vi"/>
 	<Item Name="csb encode rx frame to ws.vi" Type="VI" URL="../VIs/csb encode rx frame to ws.vi"/>
 	<Item Name="csb frames to pcap.vi" Type="VI" URL="../VIs/csb frames to pcap.vi"/>
+	<Item Name="csb frames to pcap range.vi" Type="VI" URL="../VIs/csb frames to pcap range.vi"/>
 	<Item Name="csb hdlc decode.vi" Type="VI" URL="../VIs/csb hdlc decode.vi"/>
 	<Item Name="csb hdlc encode.vi" Type="VI" URL="../VIs/csb hdlc encode.vi"/>
 	<Item Name="csb hdlc state init.vi" Type="VI" URL="../VIs/csb hdlc state init.vi"/>
@@ -26,5 +28,4 @@
 	<Item Name="csb ws parse frames.vi" Type="VI" URL="../VIs/csb ws parse frames.vi"/>
 	<Item Name="csb ws state init.vi" Type="VI" URL="../VIs/csb ws state init.vi"/>
 	<Item Name="csb ws state size.vi" Type="VI" URL="../VIs/csb ws state size.vi"/>
-	<Item Name="libcansub_codec.dll" Type="Document" URL="../libcansub_codec.dll"/>
 </Library>
