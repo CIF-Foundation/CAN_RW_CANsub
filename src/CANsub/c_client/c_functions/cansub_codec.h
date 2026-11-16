@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define CSB_VERSION              0x00010200   /* 1.2.0: pcap CAN packets (LINKTYPE_CAN_SOCKETCAN, NI CIF format) (csb_frames_to_pcap, csb_encode_pcap_to_ws) */
+#define CSB_VERSION              0x00010300   /* 1.3.0: csb_frames_to_pcap_range (frame range, packet limit, allow and deny ID lists) */
 
 #define CSB_OK                   0
 #define CSB_ERR_BUFFER_TOO_SMALL (-1)  /* an output buffer is smaller than required */
@@ -206,6 +206,30 @@ int32_t csb_frames_to_pcap(int32_t n_frames, const double *t_dev, const uint32_t
                           const uint16_t *flags, const uint8_t *data_len, const uint8_t *data,
                           int32_t tai_minus_utc_s, int32_t options,
                           uint8_t *out, int32_t out_cap, int32_t *n_packets, int32_t *n_skipped);
+
+/* 1.3.0. As csb_frames_to_pcap, for a part of the decode arrays and with ID lists (for the CIF
+ * CAN_RW class: its Read returns at most "number to read" packets and applies CAN Filter).
+ * Converts frames first, first+1, ... and stops when max_packets packets are written or at
+ * n_frames. *next = index of the first frame that was not examined (== n_frames when all are
+ * done): give it as "first" in the next call. Frames that are skipped or filtered do not count
+ * as packets.
+ * ID lists, the same rule as "Filter Packets" of CAN_RW_CORE: a packet passes if its 29-bit ID
+ * value is in allow (or n_allow == 0) and is not in deny. The lists hold ID values only: a
+ * standard and an extended ID with the same value are the same entry. allow / deny may be NULL
+ * when the count is 0. Linear search: time grows with n_allow + n_deny for each frame.
+ * *n_packets = packets written; *n_filtered = frames removed by the lists; *n_skipped = TX acks
+ * and error frames not converted (options). Kept TX acks and kept error frames (SocketCAN error
+ * ID value) also go through the lists.
+ * Requirement: out_cap >= min(max_packets, n_frames - first) * CSB_PCAP_MAX_PACKET.
+ * Returns the number of bytes written. */
+int32_t csb_frames_to_pcap_range(int32_t n_frames, int32_t first, int32_t max_packets,
+                                const double *t_dev, const uint32_t *id, const uint16_t *flags,
+                                const uint8_t *data_len, const uint8_t *data,
+                                const uint32_t *allow, int32_t n_allow,
+                                const uint32_t *deny, int32_t n_deny,
+                                int32_t tai_minus_utc_s, int32_t options,
+                                uint8_t *out, int32_t out_cap,
+                                int32_t *n_packets, int32_t *n_filtered, int32_t *n_skipped, int32_t *next);
 
 /* Concatenated pcap CAN packets (for example from CIF, to transmit) -> concatenated WebSocket frames, ready for
  * ONE TCP Write. Encodes packets until the input ends, the next packet is incomplete, or out has

@@ -146,5 +146,56 @@ for _ in range(N):
     if r != len(exp) or bytes(out[:r]) != exp: bad += 1
 report("csb_frames_to_pcap vs NI VI", bad, N)
 
+# --- 1.3.0: csb_frames_to_pcap_range (range, packet limit, allow / deny lists) vs the same model
+lib.csb_frames_to_pcap_range.restype = C.c_int32
+bad = 0; N = 2000
+for _ in range(N):
+    n = rnd.randint(0, 30)
+    td = (C.c_double * max(n, 1))(); ids = (C.c_uint32 * max(n, 1))(); fl = (C.c_uint16 * max(n, 1))()
+    dl = (C.c_uint8 * max(n, 1))(); dd = (C.c_uint8 * (64 * max(n, 1)))()
+    little = rnd.random() < 0.5; tai = rnd.choice([37, 0]); keep_ack = rnd.random() < 0.3
+    allow = [rnd.randrange(12) for _ in range(rnd.choice([0, 0, 1, 3, 5]))]
+    deny = [rnd.randrange(12) for _ in range(rnd.choice([0, 0, 1, 3]))]
+    model = []                                   # per frame: ("pkt", bytes) | ("skip",) | ("filt",)
+    for i in range(n):
+        us = rnd.randrange(0, 2**40); td[i] = 1735689600.0 + us / 1e6
+        kind = rnd.choice(["cc", "fd", "fdb", "rtr", "ack", "err"])
+        ext = rnd.random() < 0.4; ids[i] = rnd.randrange(12)
+        f = 1 if ext else 0
+        if kind in ("fd", "fdb"): f |= 2 | (8 if kind == "fdb" else 0); L = rnd.choice(DLC)
+        elif kind == "rtr": f |= 4; L = 0
+        else: L = rnd.randint(0, 8)
+        if kind == "ack": f |= 0x20
+        if kind == "err": f = 0x40 | (rnd.randint(0, 4) << 8); ids[i] = 0; L = 0
+        fl[i] = f; dl[i] = L
+        for k in range(L): dd[64 * i + k] = rnd.randrange(256)
+        if kind == "err" or (kind == "ack" and not keep_ack): model.append(("skip",)); continue
+        v = ids[i] & 0x1FFFFFFF
+        if (allow and v not in allow) or v in deny: model.append(("filt",)); continue
+        mode = 3 if kind == "rtr" else 2 if kind == "fdb" else 1 if kind == "fd" else 0
+        t_ns = (1735689600 + tai) * 10**9 + us * 1000
+        model.append(("pkt", ni_build(t_ns, ids[i], ext, mode, bytes(dd[64 * i:64 * i + L]), "<" if little else ">")))
+    al = (C.c_uint32 * max(len(allow), 1))(*allow); de = (C.c_uint32 * max(len(deny), 1))(*deny)
+    opts = (4 if little else 0) | (1 if keep_ack else 0)
+    first = 0; ok = True; guard = 0
+    while ok and guard < 200:
+        guard += 1
+        maxp = rnd.randint(0, 8)
+        exp = b""; ep = ef = es = 0; i = first                    # model of one call
+        while i < n and ep < maxp:
+            m = model[i]; i += 1
+            if m[0] == "pkt": exp += m[1]; ep += 1
+            elif m[0] == "filt": ef += 1
+            else: es += 1
+        cap = 88 * min(maxp, n - first)
+        out = buf(cap); np_ = C.c_int32(); nf_ = C.c_int32(); ns_ = C.c_int32(); nx_ = C.c_int32()
+        r = lib.csb_frames_to_pcap_range(n, first, maxp, td, ids, fl, dl, dd, al, len(allow), de, len(deny), tai, opts,
+                                         out, cap, C.byref(np_), C.byref(nf_), C.byref(ns_), C.byref(nx_))
+        if r != len(exp) or bytes(out[:max(r, 0)]) != exp or (np_.value, nf_.value, ns_.value, nx_.value) != (ep, ef, es, i): ok = False
+        first = i
+        if first >= n and maxp > 0: break
+    if not ok: bad += 1
+report("csb_frames_to_pcap_range vs model", bad, N)
+
 print("CROSSCHECK PASS" if ok_all else "CROSSCHECK FAIL")
 sys.exit(0 if ok_all else 1)

@@ -51,7 +51,7 @@ static void test_helpers(void)
     csb_ws_state_init(wstate, sizeof wstate);
     CHECK(csb_ws_parse_frames(wstate, sizeof wstate, small, 0, ops, lens, 1 << 14, out, sizeof out, &nf) == 0, "ws mode 1");
     CHECK(csb_decode_ws_to_can(wstate, sizeof wstate, hstate, sizeof hstate, small, 0, t_dev, ids, fl, dlcs, dlen, data, 8192, &nf, &pc, ping, &pl, &ce, &de) == CSB_ERR_STATE, "ws state used by both APIs is refused");
-    CHECK(csb_version() == 0x00010200u && csb_hdlc_state_size() == CSB_HDLC_STATE_SIZE && csb_ws_state_size() == CSB_WS_STATE_SIZE, "info");
+    CHECK(csb_version() == 0x00010300u && csb_hdlc_state_size() == CSB_HDLC_STATE_SIZE && csb_ws_state_size() == CSB_WS_STATE_SIZE, "info");
 }
 
 static void test_rt_helpers(void)
@@ -149,10 +149,105 @@ static void test_cif(void)
     CHECK(csb_encode_pcap_to_ws(exp3, 20, 0, 0u, ws_b, sizeof ws_b, &ep, &er, &used) == 0 && used == 0 && ep == 0, "cif incomplete kept");
 }
 
+static void test_pcap_range(void)
+{
+    /* 1.3.0: csb_frames_to_pcap_range. Reference = csb_frames_to_pcap (checked against NI above). */
+    enum { N = 400 };
+    static double td[N]; static uint32_t id[N]; static uint16_t f[N]; static uint8_t dl[N]; static uint8_t d[N * 64];
+    static uint8_t ref[N * CSB_PCAP_MAX_PACKET], got[N * CSB_PCAP_MAX_PACKET], one[N * CSB_PCAP_MAX_PACKET];
+    for (int i = 0; i < N; i++) {
+        td[i] = 1735689600.0 + (double)(rnd() % 100000000u) / 1e6;
+        uint32_t r = rnd() % 10u;
+        f[i] = 0;
+        if (r == 0) f[i] = CSB_F_TX_ACK;
+        else if (r == 1) f[i] = (uint16_t)(CSB_F_ERROR | ((rnd() % 5u) << CSB_F_ERRTYPE_SHIFT));
+        else if (r == 2) f[i] = CSB_F_RTR;
+        else if (r <= 5) f[i] = (uint16_t)(CSB_F_FDF | ((rnd() & 1u) ? CSB_F_BRS : 0));
+        if (!(f[i] & CSB_F_ERROR) && (rnd() % 3u == 0)) f[i] |= CSB_F_IDE;
+        id[i] = (f[i] & CSB_F_ERROR) ? 0u : (rnd() % 16u);          /* few IDs: the lists match often */
+        dl[i] = (uint8_t)((f[i] & CSB_F_FDF) ? (rnd() % 65u) : (rnd() % 9u));
+        for (int k = 0; k < 64; k++) d[i * 64 + k] = (uint8_t)rnd();
+    }
+    int32_t np, nsk, nfl, next;
+    /* 1. whole range, no lists: identical to csb_frames_to_pcap, for each option value */
+    for (int32_t opt = 0; opt < 8; opt++) {
+        int32_t rn = csb_frames_to_pcap(N, td, id, f, dl, d, 37, opt, ref, sizeof ref, &np, &nsk);
+        int32_t np2, nsk2;
+        int32_t gn = csb_frames_to_pcap_range(N, 0, N, td, id, f, dl, d, NULL, 0, NULL, 0, 37, opt, got, sizeof got, &np2, &nfl, &nsk2, &next);
+        CHECK(gn == rn && np2 == np && nsk2 == nsk && nfl == 0 && next == N && memcmp(ref, got, (size_t)rn) == 0, "range whole opt=%d gn=%d rn=%d", opt, gn, rn);
+    }
+    /* 2. in pieces of random size: the concatenation is identical, counters add up */
+    for (int rep = 0; rep < 20; rep++) {
+        int32_t opt = (int32_t)(rnd() % 4u);
+        int32_t rn = csb_frames_to_pcap(N, td, id, f, dl, d, 37, opt, ref, sizeof ref, &np, &nsk);
+        int32_t first = 0, w = 0, tp = 0, ts = 0, calls = 0;
+        while (first < N && calls < 10 * N) {
+            int32_t maxp = (int32_t)(rnd() % 40u);                    /* 0 is permitted */
+            int32_t np2, nsk2;
+            int32_t gn = csb_frames_to_pcap_range(N, first, maxp, td, id, f, dl, d, NULL, 0, NULL, 0, 37, opt, got + w, maxp * CSB_PCAP_MAX_PACKET, &np2, &nfl, &nsk2, &next);
+            CHECK(gn >= 0 && np2 <= maxp && next >= first && next <= N && nfl == 0, "range piece gn=%d np=%d next=%d", gn, np2, next);
+            if (gn < 0) break;
+            if (maxp == 0) CHECK(gn == 0 && np2 == 0 && next == first, "range max 0");
+            w += gn; tp += np2; ts += nsk2; first = next; calls++;
+        }
+        CHECK(first == N && w == rn && tp == np && ts == nsk && memcmp(ref, got, (size_t)rn) == 0, "range pieces rep=%d w=%d rn=%d", rep, w, rn);
+    }
+    /* 3. ID lists: compare with a direct model (one frame for each call) */
+    for (int rep = 0; rep < 40; rep++) {
+        uint32_t allow[6], deny[6]; int32_t na = (int32_t)(rnd() % 7u), nd = (int32_t)(rnd() % 7u);
+        if (rep == 0) { na = 0; nd = 0; }
+        if (rep == 1) { na = 3; nd = 0; }
+        if (rep == 2) { na = 0; nd = 3; }
+        for (int k = 0; k < na; k++) allow[k] = rnd() % 16u;
+        for (int k = 0; k < nd; k++) deny[k] = rnd() % 16u;
+        if (rep == 3 && na > 0) allow[0] |= 0x80000000u;            /* flag bits in a list entry are ignored */
+        int32_t opt = (int32_t)(rnd() % 4u);
+        int32_t w = 0, mp = 0, mf = 0, ms = 0;
+        for (int i = 0; i < N; i++) {
+            int32_t np1, ns1;
+            int32_t n1 = csb_frames_to_pcap(1, td + i, id + i, f + i, dl + i, d + i * 64, 37, opt, one + w, CSB_PCAP_MAX_PACKET, &np1, &ns1);
+            if (np1 == 0) { ms += ns1; continue; }
+            uint32_t v = (((uint32_t)one[w + 16] << 24) | ((uint32_t)one[w + 17] << 16) | ((uint32_t)one[w + 18] << 8) | one[w + 19]) & 0x1FFFFFFFu;
+            int pass = 1;
+            if (na > 0) { pass = 0; for (int k = 0; k < na; k++) if ((allow[k] & 0x1FFFFFFFu) == v) pass = 1; }
+            for (int k = 0; k < nd; k++) if ((deny[k] & 0x1FFFFFFFu) == v) pass = 0;
+            if (pass) { w += n1; mp++; } else mf++;
+        }
+        int32_t gn = csb_frames_to_pcap_range(N, 0, N, td, id, f, dl, d, na ? allow : NULL, na, nd ? deny : NULL, nd, 37, opt, got, sizeof got, &np, &nfl, &nsk, &next);
+        CHECK(gn == w && np == mp && nfl == mf && nsk == ms && next == N && memcmp(one, got, (size_t)w) == 0, "range lists rep=%d gn=%d w=%d np=%d/%d nfl=%d/%d", rep, gn, w, np, mp, nfl, mf);
+        CHECK(np + nfl + nsk == N, "range lists count rep=%d", rep);
+    }
+    /* 4. the packet limit with lists: 3 packets for each call */
+    {
+        uint32_t deny[1] = {5u};
+        int32_t rn = csb_frames_to_pcap_range(N, 0, N, td, id, f, dl, d, NULL, 0, deny, 1, 37, 0, ref, sizeof ref, &np, &nfl, &nsk, &next);
+        int32_t first = 0, w = 0, tp = 0, tf = 0, ts = 0;
+        while (first < N) {
+            int32_t np2, nf2, ns2;
+            int32_t gn = csb_frames_to_pcap_range(N, first, 3, td, id, f, dl, d, NULL, 0, deny, 1, 37, 0, got + w, 3 * CSB_PCAP_MAX_PACKET, &np2, &nf2, &ns2, &next);
+            CHECK(gn >= 0 && np2 <= 3 && next > first, "range limit 3");
+            if (gn < 0 || next <= first) break;
+            w += gn; tp += np2; tf += nf2; ts += ns2; first = next;
+        }
+        CHECK(w == rn && tp == np && tf == nfl && ts == nsk && memcmp(ref, got, (size_t)rn) == 0, "range limit 3 total");
+    }
+    /* 5. arguments and capacity */
+    CHECK(csb_frames_to_pcap_range(N, N, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, 0, &np, &nfl, &nsk, &next) == 0 && np == 0 && next == N, "range first == n_frames");
+    CHECK(csb_frames_to_pcap_range(0, 0, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, 0, &np, &nfl, &nsk, &next) == 0 && next == 0, "range no frames");
+    CHECK(csb_frames_to_pcap_range(N, N + 1, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, sizeof got, &np, &nfl, &nsk, &next) == CSB_ERR_INVALID, "range first > n_frames");
+    CHECK(csb_frames_to_pcap_range(N, -1, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, sizeof got, &np, &nfl, &nsk, &next) == CSB_ERR_INVALID, "range first < 0");
+    CHECK(csb_frames_to_pcap_range(N, 0, -1, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, sizeof got, &np, &nfl, &nsk, &next) == CSB_ERR_INVALID, "range max < 0");
+    CHECK(csb_frames_to_pcap_range(N, 0, 10, td, id, f, dl, d, NULL, 2, NULL, 0, 37, 0, got, sizeof got, &np, &nfl, &nsk, &next) == CSB_ERR_INVALID, "range allow NULL with count");
+    CHECK(csb_frames_to_pcap_range(N, 0, 10, td, id, f, dl, d, NULL, 0, NULL, -1, 37, 0, got, sizeof got, &np, &nfl, &nsk, &next) == CSB_ERR_INVALID, "range deny count < 0");
+    CHECK(csb_frames_to_pcap_range(N, 0, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, 10 * CSB_PCAP_MAX_PACKET - 1, &np, &nfl, &nsk, &next) == CSB_ERR_BUFFER_TOO_SMALL, "range capacity for max_packets");
+    CHECK(csb_frames_to_pcap_range(N, N - 4, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, 4 * CSB_PCAP_MAX_PACKET, &np, &nfl, &nsk, &next) >= 0, "range capacity for the remaining frames");
+    CHECK(csb_frames_to_pcap_range(N, N - 4, 10, td, id, f, dl, d, NULL, 0, NULL, 0, 37, 0, got, 4 * CSB_PCAP_MAX_PACKET - 1, &np, &nfl, &nsk, &next) == CSB_ERR_BUFFER_TOO_SMALL, "range capacity for the remaining frames - 1");
+}
+
 int main(void)
 {
     test_crc(); test_hdlc_encode(); test_tv(); test_serialize(); test_ws_build(); test_ws_parse();
-    test_bit_timing(); test_helpers(); test_rt_helpers(); test_cif();
+    test_bit_timing(); test_helpers(); test_rt_helpers(); test_cif(); test_pcap_range();
     printf("%d checks, %d failures\n%s\n", checks, fails, fails ? "FAILED" : "ALL PASS");
     return fails ? 1 : 0;
 }

@@ -1,6 +1,6 @@
 # CIF plugins for the CANsub: build plan
 
-**Status:** plan written 2026-11-13. Step list and status: `README.md`, "Where you are", row F.
+**Status:** plan written 2026-11-13. M0 done 2026-11-13 (commit `310567f` on `feature/cansub-rw-class`). R1 code done 2026-11-13, deploy on the PXIe open. Step list and status: `README.md`, "Where you are", row F.
 
 **[verify]** = not confirmed. Check it at the step that names it.
 
@@ -117,7 +117,7 @@ Design points that need new work:
 | Step | What | Test |
 |---|---|---|
 | **M0** | the move (section 4) | project opens from the new place; smoke test + loopback example |
-| **R1** | C library 1.3.0: frames-to-pcap with `first`, `max`, allow and deny lists; build, unit tests, deploy | C tests on the PC and the target |
+| **R1** | C library 1.3.0: `csb_frames_to_pcap_range` (`first`, `max_packets`, allow and deny lists, `next`); build, unit tests, deploy. **Code done 2026-11-13:** 2221 checks pass (also ASan/UBSan), cross-check 2000 cases 0 mismatches, `dist\` and `wizard\` built. **On the PXIe 2026-11-16:** 2221 checks ALL PASS, CROSSCHECK PASS (pcap and range lines, 0 mismatches), `.so` installed in `/usr/local/lib` (sha256 `dc12221e…101e0575`). **Open:** Windows DLL copy and the version check in LabVIEW (66304) | C tests on the PC and the target |
 | **R2** | W16 `C_To_CIF_RT`, W17 `C_CIF_Encode_RT` (`LABVIEW_C_TEST.md` section 9, updated for R1) | P6-CIF `Test_C_CIF.vi` |
 | **R3** | API: `Write_Raw` | `Test_API_Write` variant |
 | **R4** | class skeleton: `CAN RW CANsub.lvclass`, private data, `Initialize`, `Start Reader`, `Start Writer`, `Stop` | open and close on the PXIe |

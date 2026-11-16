@@ -1,5 +1,5 @@
 ; Exports of libcansub_codec.dll (Windows build, only for the LabVIEW Import Shared Library
-; wizard and Windows desktop tests). Keep in step with cansub_codec.h: 21 functions.
+; wizard and Windows desktop tests). Keep in step with cansub_codec.h: 22 functions.
 LIBRARY libcansub_codec.dll
 EXPORTS
     csb_version
@@ -23,3 +23,4 @@ EXPORTS
     csb_frames_to_pcap
     csb_encode_pcap_to_ws
     csb_pcap_max_bytes
+    csb_frames_to_pcap_range

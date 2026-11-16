@@ -268,6 +268,32 @@ ones.
 5. Check: `csb version.vi` on the PXIe now returns **66048** (= `0x00010200`). Then I review the 3
    new VIs with lvkit.
 
+## 7. Update to 1.3.0: one new function, 2026-11-13
+
+The 21 existing functions are unchanged: their generated VIs stay as they are. Add only the new
+one.
+
+1. **Target:** copy the new `dist\` and run it (`README.md`, "Deploy"): `2221 checks` ALL PASS,
+   `CROSSCHECK PASS` (now with a "range" line), then `cp libcansub_codec.so /usr/local/lib/ &&
+   ldconfig`. Restart the LabVIEW application on the target.
+2. **Windows:** `wizard\test_cansub_codec_win.exe` → ALL PASS (2221). Copy the new
+   `wizard\libcansub_codec.dll` over `codec_vis\VIs\libcansub_codec.dll`.
+3. **Wizard**, same settings as section 3, header `wizard\cansub_codec_lv.h` (regenerated), and on
+   the Functions page select **only** `csb_frames_to_pcap_range`. Same library
+   `CANsub_Codec.lvlib`, folder `codec_vis\`.
+
+   | Function | Rule 1: Input array, Constant | Rule 2: Output, Pointer to Value | Rule 3: Input/Output array | Values |
+   |---|---|---|---|---|
+   | `csb_frames_to_pcap_range` | `t_dev` (DBL), `id` (U32), `flags` (U16), `data_len` (U8), `data` (U8), `allow` (U32), `deny` (U32) | `n_packets`, `n_filtered`, `n_skipped`, `next` (I32) | `out` (U8) | `n_frames`, `first`, `max_packets`, `n_allow`, `n_deny`, `tai_minus_utc_s`, `options`, `out_cap` (I32) |
+
+   Array size: **none** for every array. An empty `allow` or `deny` array with count 0 is valid
+   (the C code does not read the pointer when the count is 0).
+4. **After the wizard**, as section 4 for the new VI: **Specify path on diagram** with
+   `CANsub_Codec_LibPath.vi`; **Constant** on the rule-1 arrays; preallocated clone, inline,
+   debugging off. Save All.
+5. Check: `csb version.vi` on the PXIe now returns **66304** (= `0x00010300`). Then I review the
+   new VI with lvkit.
+
 ## Keep in step
 
 After any change to `cansub_codec.h`: `make wizard` again, and re-run the wizard only for the

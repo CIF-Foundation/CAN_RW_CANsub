@@ -630,19 +630,32 @@ int32_t csb_pcap_max_bytes(int32_t n_frames)
     return n_frames * CSB_PCAP_MAX_PACKET;
 }
 
-int32_t csb_frames_to_pcap(int32_t n_frames, const double *t_dev, const uint32_t *id,
-                          const uint16_t *flags, const uint8_t *data_len, const uint8_t *data,
-                          int32_t tai_minus_utc_s, int32_t options,
-                          uint8_t *out, int32_t out_cap, int32_t *n_packets, int32_t *n_skipped)
+/* ID lists as CAN_RW_CORE "Filter Packets": both lists empty -> pass; else the 29-bit ID must be
+ * in the allow list (or that list is empty) and must not be in the deny list. Linear search. */
+static int pcap_id_pass(uint32_t id29, const uint32_t *allow, int32_t n_allow,
+                        const uint32_t *deny, int32_t n_deny)
 {
-    if (n_frames < 0 || !t_dev || !id || !flags || !data_len || !data || !out || !n_packets || !n_skipped)
-        return CSB_ERR_INVALID;
-    int32_t need = csb_pcap_max_bytes(n_frames);
-    if (need < 0) return need;
-    if (out_cap < need) return CSB_ERR_BUFFER_TOO_SMALL;
+    if (n_allow > 0) {
+        int found = 0;
+        for (int32_t k = 0; k < n_allow; k++) if ((allow[k] & 0x1FFFFFFFu) == id29) { found = 1; break; }
+        if (!found) return 0;
+    }
+    for (int32_t k = 0; k < n_deny; k++) if ((deny[k] & 0x1FFFFFFFu) == id29) return 0;
+    return 1;
+}
+
+/* Frames first .. n_frames-1 -> packets, until max_packets packets are written. The caller has
+ * checked the arguments and the capacity. */
+static int32_t pcap_convert(int32_t n_frames, int32_t first, int32_t max_packets,
+                            const double *t_dev, const uint32_t *id, const uint16_t *flags,
+                            const uint8_t *data_len, const uint8_t *data,
+                            const uint32_t *allow, int32_t n_allow, const uint32_t *deny, int32_t n_deny,
+                            int32_t tai_minus_utc_s, int32_t options, uint8_t *out,
+                            int32_t *n_packets, int32_t *n_filtered, int32_t *n_skipped, int32_t *next)
+{
     int little = (options & CSB_PCAP_LITTLE_ENDIAN) != 0;
-    int32_t w = 0, np = 0, ns = 0;
-    for (int32_t i = 0; i < n_frames; i++) {
+    int32_t w = 0, np = 0, ns = 0, nfl = 0, i = first;
+    for (; i < n_frames && np < max_packets; i++) {
         uint16_t f = flags[i];
         int err = (f & CSB_F_ERROR) != 0;
         if ((err && !(options & CSB_PCAP_KEEP_ERRORS)) ||
@@ -676,6 +689,8 @@ int32_t csb_frames_to_pcap(int32_t n_frames, const double *t_dev, const uint32_t
                 for (uint8_t k = 0; k < plen; k++) pay[k] = data[(size_t)i * CSB_MAX_CAN_DATA + k];
             }
         }
+        if ((n_allow > 0 || n_deny > 0) &&
+            !pcap_id_pass(can_id & 0x1FFFFFFFu, allow, n_allow, deny, n_deny)) { nfl++; continue; }
         uint8_t *p = out + w;
         uint32_t len = 8u + plen;
         put_u32(p + 0, (uint32_t)(ns_tai / 1000000000LL), little);
@@ -687,8 +702,48 @@ int32_t csb_frames_to_pcap(int32_t n_frames, const double *t_dev, const uint32_t
         for (uint8_t k = 0; k < plen; k++) p[24 + k] = pay[k];
         w += 24 + plen; np++;
     }
-    *n_packets = np; *n_skipped = ns;
+    *n_packets = np; *n_filtered = nfl; *n_skipped = ns; *next = i;
     return w;
+}
+
+int32_t csb_frames_to_pcap(int32_t n_frames, const double *t_dev, const uint32_t *id,
+                          const uint16_t *flags, const uint8_t *data_len, const uint8_t *data,
+                          int32_t tai_minus_utc_s, int32_t options,
+                          uint8_t *out, int32_t out_cap, int32_t *n_packets, int32_t *n_skipped)
+{
+    if (n_frames < 0 || !t_dev || !id || !flags || !data_len || !data || !out || !n_packets || !n_skipped)
+        return CSB_ERR_INVALID;
+    int32_t need = csb_pcap_max_bytes(n_frames);
+    if (need < 0) return need;
+    if (out_cap < need) return CSB_ERR_BUFFER_TOO_SMALL;
+    int32_t nfl, next;
+    return pcap_convert(n_frames, 0, n_frames, t_dev, id, flags, data_len, data, NULL, 0, NULL, 0,
+                        tai_minus_utc_s, options, out, n_packets, &nfl, n_skipped, &next);
+}
+
+/* 1.3.0 */
+int32_t csb_frames_to_pcap_range(int32_t n_frames, int32_t first, int32_t max_packets,
+                                const double *t_dev, const uint32_t *id, const uint16_t *flags,
+                                const uint8_t *data_len, const uint8_t *data,
+                                const uint32_t *allow, int32_t n_allow,
+                                const uint32_t *deny, int32_t n_deny,
+                                int32_t tai_minus_utc_s, int32_t options,
+                                uint8_t *out, int32_t out_cap,
+                                int32_t *n_packets, int32_t *n_filtered, int32_t *n_skipped, int32_t *next)
+{
+    if (n_frames < 0 || first < 0 || first > n_frames || max_packets < 0 ||
+        !t_dev || !id || !flags || !data_len || !data || !out ||
+        n_allow < 0 || n_deny < 0 || (n_allow > 0 && !allow) || (n_deny > 0 && !deny) ||
+        !n_packets || !n_filtered || !n_skipped || !next)
+        return CSB_ERR_INVALID;
+    int32_t most = n_frames - first;                 /* packets this call can write at most */
+    if (most > max_packets) most = max_packets;
+    int32_t need = csb_pcap_max_bytes(most);
+    if (need < 0) return need;
+    if (out_cap < need) return CSB_ERR_BUFFER_TOO_SMALL;
+    return pcap_convert(n_frames, first, max_packets, t_dev, id, flags, data_len, data,
+                        allow, n_allow, deny, n_deny, tai_minus_utc_s, options, out,
+                        n_packets, n_filtered, n_skipped, next);
 }
 
 int32_t csb_encode_pcap_to_ws(const uint8_t *in, int32_t in_len, int32_t options, uint32_t mask,

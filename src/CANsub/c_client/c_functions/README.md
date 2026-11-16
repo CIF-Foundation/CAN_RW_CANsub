@@ -16,7 +16,16 @@ vectors. Use it to compare with the G versions, or instead of them.
 | `Makefile` | `make`, `make test`, `make check` (sanitizers), `make bench`, `make dist`, `make clean` |
 | `LABVIEW_C_TEST.md` | **LabVIEW side:** wrapper VIs (one CLFN each, CLFN tables), test VIs and the test procedure P0–P5 |
 
-## Status (2026-11-02, version 1.2.0, built and tested on desktop Linux x86_64, gcc 11.4)
+## Status (2026-11-13, version 1.3.0, built and tested on desktop Linux x86_64, gcc 11.4)
+
+- **1.3.0 (2026-11-13):** `csb_frames_to_pcap_range` for the CIF `CAN RW CANsub` class: converts a
+  range of frames (`first`, `max_packets`, returns `next`) and applies allow and deny ID lists
+  (the rule of `Filter Packets` in `CAN_RW_CORE`). All earlier functions are unchanged
+  (`csb_frames_to_pcap` now calls the same internal code; its 1612 checks still pass).
+  `make test`: **2221 checks, 0 failures**, also with AddressSanitizer + UBSan; `crosscheck.py`:
+  new line "csb_frames_to_pcap_range vs model", 2000 cases, 0 mismatches. 5 mutations of the new
+  code were each detected by the tests. `csb_version()` = **66304** (`0x00010300`).
+  **Not yet on the PXIe** (1.2.0 is there): copy `dist/` again.
 
 - **1.2.0 (2026-11-02):** pcap CAN packets (`LINKTYPE_CAN_SOCKETCAN`, the NI CIF format), aligned
   with NI's CIF VIs (section "pcap CAN packets" below). The 1.1.0 functions are unchanged. **Not yet on the PXIe**: copy `dist/` again.
@@ -48,16 +57,18 @@ make dist      # -> dist/: libcansub_codec.so, test_cansub_codec_static, bench_c
 The test and bench programs are linked **statically**: they run on the target without a compiler
 and without depending on the target's library versions.
 
-**Copy to the target** (PC, PowerShell):
+**Copy to the target** (PC, PowerShell). Remove the old folder on the target first
+(`rm -rf /home/admin/csb_dist`): if it exists, `scp -r` puts the new files in `csb_dist/dist` and
+the old files stay in `csb_dist` (found 2026-11-16: the old 927-check test ran).
 ```
-scp -r C:\Dev\CANSub\labview\c_client\c_functions\dist admin@<rt-ip>:/home/admin/csb_dist
+scp -r C:\Dev\CIF\CAN_RW_CANsub\src\CANsub\c_client\c_functions\dist admin@<rt-ip>:/home/admin/csb_dist
 ```
 **On the target** (as admin):
 ```
 cd /home/admin/csb_dist
 chmod +x *_static                          # scp from Windows drops the execute bit
 sha256sum -c SHA256SUMS                    # 4 x OK: the copy is complete
-./test_cansub_codec_static                 # 1612 checks, 0 failures / ALL PASS
+./test_cansub_codec_static                 # 2221 checks, 0 failures / ALL PASS
 python3 crosscheck.py ./libcansub_codec.so # CROSSCHECK PASS: the .so itself loads and works here
 ./bench_cansub_codec_static --fifo 80      # timing under SCHED_FIFO + mlockall (see below)
 cp libcansub_codec.so /usr/local/lib/ && ldconfig
@@ -167,6 +178,7 @@ in `csb_decode_ws_to_can`, and the reverse.
 | `int32 csb_frames_to_pcap(n_frames, t_dev, id, flags, data_len, data, tai_minus_utc_s, options, out, cap, *n_packets, *n_skipped)` | 1.2.0 | decode arrays → concatenated pcap CAN packets (pcap header + SocketCAN header + payload); skips TX acks and error frames by default | `out` ≥ `csb_pcap_max_bytes(n_frames)` = 88 × n |
 | `int32 csb_encode_pcap_to_ws(in, in_len, options, mask, out, cap, *n_packets, *n_rejected, *consumed)` | 1.2.0 | concatenated pcap CAN packets → concatenated WS frames for one TCP Write; keeps an incomplete last packet (`consumed`) | `out` ≥ 174 per packet |
 | `int32 csb_pcap_max_bytes(n_frames)` | 1.2.0 | capacity for `csb_frames_to_pcap` | – |
+| `int32 csb_frames_to_pcap_range(n_frames, first, max_packets, t_dev, id, flags, data_len, data, allow, n_allow, deny, n_deny, tai_minus_utc_s, options, out, cap, *n_packets, *n_filtered, *n_skipped, *next)` | 1.3.0 | as `csb_frames_to_pcap` for frames `first` …, at most `max_packets` packets, with allow / deny ID lists; `*next` = first frame not examined. Capacity: min(`max_packets`, `n_frames` − `first`) × 88 | – |
 
 ## pcap CAN packets (1.2.0): the NI CIF format
 

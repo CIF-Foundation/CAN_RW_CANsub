@@ -14,16 +14,16 @@ list with the status is in `README.md`, "Where you are".
 | LabVIEW API `CANsub_API.lvlib` (Direct ownership, Poll mode) | done; 1 h A/B proof passed (`API_BUILD.md`) |
 | Loopback example | done (`examples\CANsub_API_Loopback_Example.vi`) |
 | Connection-loss detection (TCP keepalive, error 5203 with cause) | done and tested 2026-11-13 (`API_BUILD.md`, A7) |
-| CIF plugins | **plan written, build not started.** Next step: M0 (`CIF_BUILD.md` section 4) |
+| CIF plugins | M0 (move) done 2026-11-13. R1 (C library 1.3.0, `csb_frames_to_pcap_range`) written and tested on the PC; not yet on the PXIe. Next: deploy 1.3.0, then R2 (`CIF_BUILD.md` section 6) |
 
 Last commits in the CANSub repo (branch `c-client`): `4f29add` A7, `afd71af` CIF plan,
 `6d96534` Jira tasks.
 
 ## 2. Next steps (in order)
 
-1. **M0:** move `labview\common` and `labview\c_client` to
+1. **M0 (done 2026-11-13, commit `310567f`; the commands below are kept as a record):** move `labview\common` and `labview\c_client` to
    `C:\Dev\CIF\CAN_RW_CANsub\src\CANsub\`, on a new branch `feature/cansub-rw-class`.
-   Commands: `CIF_BUILD.md` section 4 and the list below. The branch does not exist yet.
+   Commands: `CIF_BUILD.md` section 4 and the list below. 
 2. R1 to R10 in `CIF_BUILD.md` section 6 (C library 1.3.0, pcap wrapper VIs, `Write_Raw`,
    the class `CAN RW CANsub.lvclass`, CAN status, the two plugins, bench test, packaging).
 3. Phase 2 (reader and writer on the same channel) after Phase 1.
@@ -62,7 +62,7 @@ untracked remains of the two folders.
 |---|---|
 | Step list and status | `README.md` (this folder), "Where you are" |
 | CIF plan, class design, design points P1 to P9, steps | `CIF_BUILD.md` |
-| API plan, A6 and A7 results, backlog B1 to B11 | `API_BUILD.md` |
+| API plan, A6 and A7 results, backlog B1 to B12 | `API_BUILD.md` |
 | Layers, rules, error codes | `ARCHITECTURE.md` |
 | Shared VIs C1 to C7, LabVIEW style rules | `..\common\COMMON_BUILD.md` |
 | C library, wrappers, tests | `c_functions\README.md`, `c_functions\LABVIEW_C_TEST.md`, `c_functions\WIZARD.md` |
