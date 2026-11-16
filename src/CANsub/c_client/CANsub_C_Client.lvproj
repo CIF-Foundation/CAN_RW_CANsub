@@ -126,6 +126,7 @@ AddOutputFilter chunkFilter
 			<Item Name="Test_API_Open_Close.vi" Type="VI" URL="../tests/Test_API_Open_Close.vi"/>
 			<Item Name="Test_API_Receive.vi" Type="VI" URL="../tests/Test_API_Receive.vi"/>
 			<Item Name="Test_API_Write.vi" Type="VI" URL="../tests/Test_API_Write.vi"/>
+			<Item Name="Test_API_Write_Raw.vi" Type="VI" URL="../tests/Test_API_Write_Raw.vi"/>
 			<Item Name="Test_C_CIF.vi" Type="VI" URL="../tests/Test_C_CIF.vi"/>
 			<Item Name="Test_C_Codec_RoundTrip.vi" Type="VI" URL="../tests/Test_C_Codec_RoundTrip.vi"/>
 			<Item Name="Test_C_Decode_To_Frames.vi" Type="VI" URL="../tests/Test_C_Decode_To_Frames.vi"/>

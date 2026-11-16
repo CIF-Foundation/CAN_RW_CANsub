@@ -63,7 +63,7 @@
 			<Property Name="NI.ClassItem.MethodScope" Type="UInt">1</Property>
 			<Property Name="NI.ClassItem.MustOverride" Type="Bool">true</Property>
 			<Property Name="NI.ClassItem.Priority" Type="Int">1</Property>
-			<Property Name="NI.ClassItem.State" Type="Int">1115685392</Property>
+			<Property Name="NI.ClassItem.State" Type="Int">8396816</Property>
 		</Item>
 		<Item Name="Status.vi" Type="VI" URL="../Status.vi">
 			<Property Name="NI.ClassItem.ExecutionSystem" Type="Int">-1</Property>
@@ -91,6 +91,15 @@
 			<Property Name="NI.ClassItem.MustOverride" Type="Bool">true</Property>
 			<Property Name="NI.ClassItem.Priority" Type="Int">1</Property>
 			<Property Name="NI.ClassItem.State" Type="Int">1342713872</Property>
+		</Item>
+		<Item Name="Write_Raw.vi" Type="VI" URL="../Write_Raw.vi">
+			<Property Name="NI.ClassItem.ExecutionSystem" Type="Int">-1</Property>
+			<Property Name="NI.ClassItem.Flags" Type="Int">16777344</Property>
+			<Property Name="NI.ClassItem.InvokeUsage" Type="UInt">1</Property>
+			<Property Name="NI.ClassItem.MethodScope" Type="UInt">1</Property>
+			<Property Name="NI.ClassItem.MustOverride" Type="Bool">true</Property>
+			<Property Name="NI.ClassItem.Priority" Type="Int">1</Property>
+			<Property Name="NI.ClassItem.State" Type="Int">1107820560</Property>
 		</Item>
 	</Item>
 	<Item Name="Static" Type="Folder">

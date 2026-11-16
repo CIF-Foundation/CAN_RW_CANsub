@@ -90,6 +90,7 @@ stores the config and the bit timing. `Status` is dynamic (must override).
 | `Frame_Get` | static, parent (Preallocated, Inline) | `frames`, `i` → `frame` (`CANsub_Frame.ctl`: id, t_dev, dlc, data len, 7 flag Booleans) + `data offset` (= i·64, index into `frames.data`, no copy); i outside 0…count−1 → 5209 | **yes** |
 | `Write_Frame` | dynamic, Direct override (thin: In Place Element Structure on `TLS connection`, `tx`, `status`) | `Check_Open` (5202/5203) → W15 `C_Encode_RT` (tx in place) → `Send_TX` | **yes** |
 | `Write_Echo` | dynamic, Direct override (thin, as above) | `Check_Open` → W14 `C_Echo_RT` (`frames`, `i`, new ID) → `Send_TX` | **yes** |
+| `Write_Raw` (added 2026-11-16 for the CIF class) | dynamic, Direct override (thin: In Place Element Structure on `TLS connection`, `status`) | `Check_Open` → `Send_TX` with `frames (1)` ← `n frames`; sends a buffer the caller prepared (W17 `C_CIF_Encode_RT`) with one TCP Write; `bytes in` → `bytes out` | **yes** |
 | `Check_Open` (private, `api\Private\`, Inline) | – | `status.state`: Closed → 5202, Lost → 5203 | yes |
 | `Send_TX` (private, `api\Private\`, Inline) | – | Array Subset (`tx`, 0, `length`) → TCP Write (1000 ms) → `frames written` + 1; TCP error → `state` = Lost, 5203 | yes |
 

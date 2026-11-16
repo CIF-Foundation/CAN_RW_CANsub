@@ -1,6 +1,6 @@
 # CIF plugins for the CANsub: build plan
 
-**Status:** plan written 2026-11-13. M0 done 2026-11-13 (commit `310567f` on `feature/cansub-rw-class`). R1 and R2 done 2026-11-16. Next: R3. Step list and status: `README.md`, "Where you are", row F.
+**Status:** plan written 2026-11-13. M0 done 2026-11-13 (commit `310567f` on `feature/cansub-rw-class`). R1, R2 and R3 done 2026-11-16. Next: R4. Step list and status: `README.md`, "Where you are", row F.
 
 **[verify]** = not confirmed. Check it at the step that names it.
 
@@ -119,7 +119,7 @@ Design points that need new work:
 | **M0** | the move (section 4) | project opens from the new place; smoke test + loopback example |
 | **R1** | C library 1.3.0: `csb_frames_to_pcap_range` (`first`, `max_packets`, allow and deny lists, `next`); build, unit tests, deploy. **Code done 2026-11-13:** 2221 checks pass (also ASan/UBSan), cross-check 2000 cases 0 mismatches, `dist\` and `wizard\` built. **On the PXIe 2026-11-16:** 2221 checks ALL PASS, CROSSCHECK PASS (pcap and range lines, 0 mismatches), `.so` installed in `/usr/local/lib` (sha256 `dc12221e…101e0575`). Windows: 2221 checks pass, DLL copied; `Test_C_Smoke` on the PXIe returns **66304**. **R1 done 2026-11-16** (commit `54cc6c0`, local only) | C tests on the PC and the target |
 | **R2** | **Done 2026-11-16.** Generated VI `csb frames to pcap range.vi`; W16 `api\Pcap\C_Frames_To_CIF.vi` (`CANsub_Frames` → pcap, inputs `first`, `max packets`, `options` = `CANsub_Pcap_Options.ctl`; output `CANsub_Pcap_Results.ctl`); W17 `wrappers\C_CIF_Encode_RT.vi` (pcap → WebSocket bytes, `C_CIF_Encode_Result.ctl`) | `Test_C_Frames_To_CIF.vi`: 11 runs pass (range, limit, lists, errors, byte order), no buffer copies. `Test_C_CIF.vi`: round trip W10 → decode → W16 → W17 identical (241 bytes, 10 packets), buffer-limit and byte-order-mismatch runs as expected, NI parser reads the 10 packets (IDs, payloads, time) |
-| **R3** | API: `Write_Raw` | `Test_API_Write` variant |
+| **R3** | **Done 2026-11-16.** API method `Write_Raw` (`channel`, `bytes in`/`bytes out`, `length`, `n frames`): parent in `CANsub_Channel` (must override, 5208 body), override in `CANsub_DirectChannel` (`Check_Open` → `Send_TX`). `Send_TX` has a new optional input `frames (1)` (default 1) for the `frames written` count | `Test_API_Write_Raw.vi` on the PXIe: one call with 10 frames on CH1, 10 frames read on CH2 (IDs 0x100–0x109), `frames written` = 10. Regression: loopback example 30 s, missing 0, `frames written` = sent |
 | **R4** | class skeleton: `CAN RW CANsub.lvclass`, private data, `Initialize`, `Start Reader`, `Start Writer`, `Stop` | open and close on the PXIe |
 | **R5** | `Read`, `Write` | `Test Streaming` copy: two RW objects, CH1 ↔ CH2 cable, pcap bytes equal |
 | **R6** | `Update CAN Status` (B1) | status with the bus connected and disconnected |
