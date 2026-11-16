@@ -182,7 +182,8 @@ int32_t csb_warmup(uint8_t *ws_state, int32_t ws_state_size,
 /* pcap packet record + LINKTYPE_CAN_SOCKETCAN frame, as the NI CIF "CAN packet" (vi.lib CIF Foundation, CIF PCAP Parse and Build, Build Socket CAN.vi and
  * Parse Next Socket CAN.vi), one packet per CAN frame, packets concatenated:
  *   pcap packet header, 16 bytes: ts_sec, ts_nsec, incl_len, orig_len (U32 each; byte order =
- *     the CIF class's "OS Endian": big-endian by default, CSB_PCAP_LITTLE_ENDIAN for little);
+ *     big-endian by default, CSB_PCAP_LITTLE_ENDIAN for little. The CIF CAN_RW classes use
+ *     LITTLE-endian: CAN_RW_CORE sets the NI pcap class to Little Endian, measured 2026-11-16);
  *     the timestamp is TAI; incl_len = orig_len = 8 + payload length
  *   LINKTYPE_CAN_SOCKETCAN header, 8 bytes: CAN ID + flags (U32, ALWAYS big-endian: id & 1FFFFFFF,
  *     | 80000000 extended, | 40000000 remote, | 20000000 error), payload length, FD flags

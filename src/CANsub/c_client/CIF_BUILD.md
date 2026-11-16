@@ -1,6 +1,6 @@
 # CIF plugins for the CANsub: build plan
 
-**Status:** plan written 2026-11-13. M0 done 2026-11-13 (commit `310567f` on `feature/cansub-rw-class`). R1 done 2026-11-16. Next: R2. Step list and status: `README.md`, "Where you are", row F.
+**Status:** plan written 2026-11-13. M0 done 2026-11-13 (commit `310567f` on `feature/cansub-rw-class`). R1 and R2 done 2026-11-16. Next: R3. Step list and status: `README.md`, "Where you are", row F.
 
 **[verify]** = not confirmed. Check it at the step that names it.
 
@@ -110,7 +110,7 @@ Design points that need new work:
 | P6 | `Temination On`, `Subordinate`, `ISO Mode` | Phase 1: ignored (termination = backlog B3; non-ISO FD is not supported by the device **[verify]**). `Subordinate` is the natural switch for Phase 2 (attach to a connection that another plugin owns). |
 | P7 | Timestamps | `Use OS Timestamp` False: `t_dev` (UTC, PTP) + 37 s → TAI (W16 parameter). True: PXIe time at `Read`. |
 | P8 | `Update CAN Status` does a REST call (TLS) from the plugin loop at each housekeep | **[verify]** the time of one call; if it is too long for the loop, do it at a lower rate. |
-| P9 | pcap byte order | Core `Init` sets the pcap class format; W16/W17 option must agree. The P6-CIF test checks it against NI's `Parse Next Socket CAN.vi`. |
+| P9 | pcap byte order | **Closed 2026-11-16: the CIF CAN plugins use a LITTLE-endian pcap packet header.** `CAN_RW_CORE` `Init` sets the NI pcap class to `pcap format.Endian` = Little Endian (used by the parse VIs) and `OS Endian` = Little Endian (used by the build VIs); the SocketCAN header (CAN ID) is always big-endian. Measured with `Test_C_CIF.vi` and NI's `Parse Next Socket CAN.vi` on the PXIe: with `little endian` = True the parser gives TAI 1735689637000000000 ns (correct), with False 2776986727000000000 ns (wrong). So the class sets `little endian` = **True** in `CANsub_Pcap_Options` and in W17. (The decision "big-endian" of 2026-11-02 was the default of the NI class alone.) |
 
 ## 6. Steps
 
@@ -118,7 +118,7 @@ Design points that need new work:
 |---|---|---|
 | **M0** | the move (section 4) | project opens from the new place; smoke test + loopback example |
 | **R1** | C library 1.3.0: `csb_frames_to_pcap_range` (`first`, `max_packets`, allow and deny lists, `next`); build, unit tests, deploy. **Code done 2026-11-13:** 2221 checks pass (also ASan/UBSan), cross-check 2000 cases 0 mismatches, `dist\` and `wizard\` built. **On the PXIe 2026-11-16:** 2221 checks ALL PASS, CROSSCHECK PASS (pcap and range lines, 0 mismatches), `.so` installed in `/usr/local/lib` (sha256 `dc12221e…101e0575`). Windows: 2221 checks pass, DLL copied; `Test_C_Smoke` on the PXIe returns **66304**. **R1 done 2026-11-16** (commit `54cc6c0`, local only) | C tests on the PC and the target |
-| **R2** | W16 `C_To_CIF_RT`, W17 `C_CIF_Encode_RT` (`LABVIEW_C_TEST.md` section 9, updated for R1) | P6-CIF `Test_C_CIF.vi` |
+| **R2** | **Done 2026-11-16.** Generated VI `csb frames to pcap range.vi`; W16 `api\Pcap\C_Frames_To_CIF.vi` (`CANsub_Frames` → pcap, inputs `first`, `max packets`, `options` = `CANsub_Pcap_Options.ctl`; output `CANsub_Pcap_Results.ctl`); W17 `wrappers\C_CIF_Encode_RT.vi` (pcap → WebSocket bytes, `C_CIF_Encode_Result.ctl`) | `Test_C_Frames_To_CIF.vi`: 11 runs pass (range, limit, lists, errors, byte order), no buffer copies. `Test_C_CIF.vi`: round trip W10 → decode → W16 → W17 identical (241 bytes, 10 packets), buffer-limit and byte-order-mismatch runs as expected, NI parser reads the 10 packets (IDs, payloads, time) |
 | **R3** | API: `Write_Raw` | `Test_API_Write` variant |
 | **R4** | class skeleton: `CAN RW CANsub.lvclass`, private data, `Initialize`, `Start Reader`, `Start Writer`, `Stop` | open and close on the PXIe |
 | **R5** | `Read`, `Write` | `Test Streaming` copy: two RW objects, CH1 ↔ CH2 cable, pcap bytes equal |

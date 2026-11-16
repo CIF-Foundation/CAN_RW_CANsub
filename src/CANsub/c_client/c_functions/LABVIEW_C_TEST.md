@@ -449,6 +449,12 @@ Same input stream as P3 (500 random frames from W10, then the ping and the close
 
 ## 9. Row 6: CIF wrappers W16, W17, test P6-CIF (for the CIF adapter)
 
+> **Superseded 2026-11-16.** The wrappers were built in a different form for the CIF class: W16
+> is `api\Pcap\C_Frames_To_CIF.vi` (on `CANsub_Frames`, with range, packet limit and ID lists,
+> library 1.3.0), W17 is `wrappers\C_CIF_Encode_RT.vi` with a `little endian` input, and the
+> tests are `Test_C_Frames_To_CIF.vi` and `Test_C_CIF.vi`. As built and results: `CIF_BUILD.md`
+> (R2, P9). The text below is the plan of 2026-11-02, kept as a record.
+
 Needs library 1.2.0 and its 3 generated VIs (`WIZARD.md` section 6). The packet format is in
 `README.md` (this folder), "pcap CAN packets": NI's CIF CAN packet (pcap header big-endian, TAI time,
 SocketCAN header, no padding). Both wrappers are real-time layer: caller-owned buffers, no

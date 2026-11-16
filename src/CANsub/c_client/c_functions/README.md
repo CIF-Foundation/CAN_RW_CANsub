@@ -196,7 +196,7 @@ One packet per CAN frame, packets concatenated (the stream that `Parse Next Sock
 
 | Bytes | Field | Value |
 |---|---|---|
-| 0–3 | `ts_sec` | TAI seconds (U32; byte order of the CIF class "OS Endian": **big-endian** on our target) |
+| 0–3 | `ts_sec` | TAI seconds (U32; byte order of the pcap header: big-endian by default in this library, **little-endian in the CIF CAN plugins**, option `CSB_PCAP_LITTLE_ENDIAN`) |
 | 4–7 | `ts_nsec` | nanoseconds (U32, same byte order) |
 | 8–11, 12–15 | `incl_len`, `orig_len` | 8 + payload length (same byte order) |
 | 16–19 | CAN ID + flags | **always big-endian**: `id AND 1FFFFFFF`, `OR 80000000` extended, `OR 40000000` remote |
@@ -205,7 +205,9 @@ One packet per CAN frame, packets concatenated (the stream that `Parse Next Sock
 | 22, 23 | reserved, len8_dlc | 0, 0 |
 | 24 … | payload | the data bytes, **no padding** |
 
-Decisions (Marcus, 2026-11-02): pcap header **big-endian**; time base **TAI** (TAI = UTC + 37 s;
+**Correction 2026-11-16:** the CIF CAN plugins use a **little-endian** pcap header (`CAN_RW_CORE` sets the NI pcap class to Little Endian; measured with NI's `Parse Next Socket CAN.vi`). Use `CSB_PCAP_LITTLE_ENDIAN` for CIF. The library default stays big-endian.
+
+Decisions (Marcus, 2026-11-02): pcap header **big-endian** (superseded for CIF, see above); time base **TAI** (TAI = UTC + 37 s;
 the C functions take the offset as a parameter, `CSB_TAI_MINUS_UTC`); **TX acks and error frames
 are skipped** by default (options `CSB_PCAP_KEEP_TX_ACK`, `CSB_PCAP_KEEP_ERRORS`; CIF's parser has
 no error frames and ignores the error flag). The CANsub cannot transmit remote or error frames, so
