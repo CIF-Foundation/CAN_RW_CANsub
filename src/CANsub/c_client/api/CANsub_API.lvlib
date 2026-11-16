@@ -4,6 +4,11 @@
 	<Property Name="NI.Lib.SourceVersion" Type="Int">620789760</Property>
 	<Property Name="NI.Lib.Version" Type="Str">1.0.0.0</Property>
 	<Property Name="NI.LV.All.SourceOnly" Type="Bool">true</Property>
+	<Item Name="Pcap" Type="Folder">
+		<Item Name="C_Frames_To_CIF.vi" Type="VI" URL="../Pcap/C_Frames_To_CIF.vi"/>
+		<Item Name="CANsub_Pcap_Options.ctl" Type="VI" URL="../Pcap/CANsub_Pcap_Options.ctl"/>
+		<Item Name="CANsub_Pcap_Results.ctl" Type="VI" URL="../Pcap/CANsub_Pcap_Results.ctl"/>
+	</Item>
 	<Item Name="Private" Type="Folder">
 		<Item Name="C_Decode_To_Frames.vi" Type="VI" URL="../Private/C_Decode_To_Frames.vi"/>
 		<Item Name="Check_Open.vi" Type="VI" URL="../Private/Check_Open.vi"/>
