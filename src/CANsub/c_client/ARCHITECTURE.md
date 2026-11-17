@@ -113,6 +113,7 @@ holds only the FIFO reference and the TX side (see 3.2).
 | 5001, 5002 | bit timing: invalid input, no one-prescaler solution |
 | 5101–5104 | C library return values (−1 … −4) |
 | **5200–5299** | **API**: 5201 channel busy (another client owns it), 5202 not open, 5203 connection lost (text: "`<operation>`: the connection is lost (cause: error `<code>`, `<source>`)", made by `Lost_Error`), 5204 library version too old, 5205 FIFO overflow (Reader mode), 5206 frames buffer too small, 5207 invalid config (or a feature not built yet), 5208 method not implemented by this class (parent `CANsub_Channel` bodies), 5209 frame index out of range (`Frame_Get`) |
+| 5300–5399 | **CIF class `CAN RW CANsub`**: 5301 Interface string not valid (`<host>/<channel>`, channel 1 to 4) |
 
 ---
 
