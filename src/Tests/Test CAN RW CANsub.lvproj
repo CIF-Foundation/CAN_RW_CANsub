@@ -94,6 +94,7 @@ AddOutputFilter chunkFilter
 		<Property Name="target.webservices.ValidTimestampWindow" Type="Int">15</Property>
 		<Item Name="Tests" Type="Folder">
 			<Item Name="Test Open Close.vi" Type="VI" URL="../Test Open Close.vi"/>
+			<Item Name="Test Streaming.vi" Type="VI" URL="../Test Streaming.vi"/>
 		</Item>
 		<Item Name="CAN RW CANsub.lvclass" Type="LVClass" URL="../../CAN RW CANsub.lvclass"/>
 		<Item Name="CAN_RW_CORE.lvclass" Type="LVClass" URL="/&lt;vilib&gt;/CIF Foundation/CIF CAN RW Core/CAN_RW_CORE.lvclass"/>
