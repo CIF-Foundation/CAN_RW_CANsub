@@ -266,6 +266,49 @@ Compared on 2026-11-12 with the device interface (`skills/cansub-device/referenc
 | B11 | **Single-channel monitor example** (`CANsub_API_Example.vi`): one channel, table of received frames, interactive **Send** button (classic/FD), status | – | Useful with any other CAN node (no CH1–CH2 loopback needed). Design given 2026-11-12; deferred by Marcus in favour of the loopback example (first example). Reuses `Example_Frames_To_Rows`, `Example_Table_Append`. | low (example) |
 | B12 | **Signal decode and encode from a CAN database (DBC)** | none: the REST API has no database function; webCAN decodes in the browser (inferred from the API, webCAN code not read) | For **standalone API use** (examples, monitor B11, test VIs). **Not for the CIF plugins**: they pass raw pcap packets, and signal decoding is expected in a different CIF plugin **[verify]**. Options: **(A)** NI-XNET conversion session (loads DBC/FIBEX, frames ↔ signals, no XNET hardware; NI-XNET must be on the target; time per conversion not measured) for a quick monitor; **(B)** convert the DBC offline with Python (cantools) to a table file + a new C function for signal extract and pack with that table (loop-safe, no allocation; one build step when the DBC changes) for the loop path; **(C)** DBC parser in LabVIEW (most work: multiplexed signals, value tables, byte order). Recommended: B for the loop, A for a monitor. Added 2026-11-16 (Marcus saw the DBC function in webCAN). | low (after the CIF plugins) |
 | B13 | **`Last Error` in the CIF `CAN Status`** (Stuff, Form, Ack, Bit1, Bit0, CRC) | not in `GET /api/can/{ch}`; the device reports the error type in error frames on the WebSocket (flag bits 8..12 of the decoded frame: 0 bit, 1 ack, 2 form, 3 stuff, 4 CRC) | The class `CAN RW CANsub` sets `Last Error` = None in Phase 1. To add it: `Read` keeps the type of the last error frame it sees (W16 skips error frames today and does not report the type), and `Update CAN Status` puts it into `CAN Status`. Needs a small change in the C function or a scan of the flags in LabVIEW. Decided 2026-11-17 (Marcus): backlog. | low |
+| B14 | **Bus Off test of the CIF class** (`Update CAN Status`) | `GET /api/can/{ch}` gives `"state":"bus_off"` | The mapping `bus_off` → Bus Off is in `Convert Device Status.vi` and is checked by review only (R6, 2026-11-18). Error Active and Error Passive are tested. Test steps: section 6.3. Decided 2026-11-18 (Marcus): backlog. | low (test) |
+
+### 6.3 Test steps for B14: Bus Off
+
+**Purpose:** show that `Update CAN Status` reports Bus Off, and record how the device recovers.
+
+**Method:** connect CAN-H to CAN-L on the bus while one frame is sent. With the two wires
+connected, the bus cannot show a dominant bit. The controller sees a bit error in each attempt,
+its transmit error counter goes up by 8 for each attempt, and above 255 it goes to Bus Off. A
+connection between CAN-H and CAN-L does not damage a CAN transceiver (ISO 11898-2 requires that
+the transceiver tolerates it).
+
+**Parts:** a DB9 breakout or a Y cable on the CH1 side of the bus, and one jumper wire. On the
+DB9 connector, CAN-L is pin 2 and CAN-H is pin 7. **[verify]** the pins against the CANsub
+hardware documentation before the test.
+
+**Steps**
+
+1. Stop all clients of CH1 and CH2. Record the start state: `curl -sk https://192.168.0.49/api/can/1`.
+2. Put the jumper between pin 2 (CAN-L) and pin 7 (CAN-H).
+3. Run `Test CAN Status.vi` (`src\Tests\`) with `Interface` = `192.168.0.49/1`,
+   `send one frame` = True, `wait between calls ms` = 0.
+4. Record `CAN Status` (`Comm State`, the two counters) and `error out`.
+5. Directly after the VI stops, run the `curl` command again and record the `state` and the
+   three error counters.
+6. Remove the jumper. Run `Test CAN Status.vi` with `send one frame` = False and record
+   `CAN Status`. Run the `curl` command again.
+7. Start `Test Open Close.vi` on `192.168.0.49/2` (`open time ms` = 20000), and during its wait
+   run `Test CAN Status.vi` with `send one frame` = True. Record `CAN Status`.
+
+**Expected**
+
+| Step | Expected |
+|---|---|
+| 4 | `Comm State` = **Bus Off**; `TX Error Counter` = 255 (the device value can be higher; the class limits it to 255); `error out` = no error |
+| 5 | `"state":"bus_off"` if the device keeps the state after the close; `"state":"stopped"` if not. Record which one. |
+| 6 | Not known. This step shows if the device leaves Bus Off by itself after a new open, and if the counters are still high (the device keeps the counters after a close, measured in R6). |
+| 7 | Error Active or Error Passive, and the frame is sent. If the state is still Bus Off, the device needs a different recovery (for example a power cycle): record it as a device rule. |
+
+**Also record:** what `Write` returns while the controller is in Bus Off (step 3: `error out` of the
+test), and the time until the device reports `bus_off` (run step 3 with the `curl` command in a
+loop: `while true; do curl -sk https://192.168.0.49/api/can/1; echo; sleep 0.2; done`).
+
 
 **Suggested order:** B1 + B2 (HIL fault visibility) → B3 → filter lists and transmit sequences
 (rest-bus simulation) → B5 + B6 (test reports) → the rest as needed.
