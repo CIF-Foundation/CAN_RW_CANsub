@@ -93,6 +93,7 @@ AddOutputFilter chunkFilter
 		<Property Name="target.webservices.SecurityAPIKey" Type="Str">PqVr/ifkAQh+lVrdPIykXlFvg12GhhQFR8H9cUhphgg=:pTe9HRlQuMfJxAG6QCGq7UvoUpJzAzWGKy5SbZ+roSU=</Property>
 		<Property Name="target.webservices.ValidTimestampWindow" Type="Int">15</Property>
 		<Item Name="Tests" Type="Folder">
+			<Item Name="Test CAN Status.vi" Type="VI" URL="../Test CAN Status.vi"/>
 			<Item Name="Test Open Close.vi" Type="VI" URL="../Test Open Close.vi"/>
 			<Item Name="Test Streaming.vi" Type="VI" URL="../Test Streaming.vi"/>
 		</Item>

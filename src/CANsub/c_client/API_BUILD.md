@@ -91,6 +91,7 @@ stores the config and the bit timing. `Status` is dynamic (must override).
 | `Write_Frame` | dynamic, Direct override (thin: In Place Element Structure on `TLS connection`, `tx`, `status`) | `Check_Open` (5202/5203) → W15 `C_Encode_RT` (tx in place) → `Send_TX` | **yes** |
 | `Write_Echo` | dynamic, Direct override (thin, as above) | `Check_Open` → W14 `C_Echo_RT` (`frames`, `i`, new ID) → `Send_TX` | **yes** |
 | `Write_Raw` (added 2026-11-16 for the CIF class) | dynamic, Direct override (thin: In Place Element Structure on `TLS connection`, `status`) | `Check_Open` → `Send_TX` with `frames (1)` ← `n frames`; sends a buffer the caller prepared (W17 `C_CIF_Encode_RT`) with one TCP Write; `bytes in` → `bytes out` | **yes** |
+| `Device_Status` (added 2026-11-18 for the CIF class; backlog B1 done) | dynamic, Direct override (thin: In Place Element Structure on `status client`, `status client open`) | `Status_Call.vi` (private): `CANsub_REST_Open` on the first call → `CANsub_REST_Status` (GET `/api/can/{ch}` → `CANsub_Device_Status`) → after an error `CANsub_REST_Close`. First call ≈ 80 ms (TLS handshake), later calls ≈ 0.6 ms while the connection stays open | no (REST; use at a low rate) |
 | `Check_Open` (private, `api\Private\`, Inline) | – | `status.state`: Closed → 5202, Lost → 5203 | yes |
 | `Send_TX` (private, `api\Private\`, Inline) | – | Array Subset (`tx`, 0, `length`) → TCP Write (1000 ms) → `frames written` + 1; TCP error → `state` = Lost, 5203 | yes |
 

@@ -16,6 +16,7 @@
 		<Item Name="Read_Poll.vi" Type="VI" URL="../Private/Read_Poll.vi"/>
 		<Item Name="Read_Pong.vi" Type="VI" URL="../Private/Read_Pong.vi"/>
 		<Item Name="Send_TX.vi" Type="VI" URL="../Private/Send_TX.vi"/>
+		<Item Name="Status_Call.vi" Type="VI" URL="../Private/Status_Call.vi"/>
 	</Item>
 	<Item Name="Typedefs" Type="Folder">
 		<Item Name="CANsub_Config.ctl" Type="VI" URL="../Typedefs/CANsub_Config.ctl"/>

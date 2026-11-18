@@ -98,6 +98,8 @@ untracked remains of the two folders.
 - `DELETE /api/can/{ch}/ws` while a WebSocket is connected returns 200 but has no effect.
 - After a cable pull, the device frees the channel itself; no DELETE is necessary.
 - REST calls need "verify server" off (the certificate name does not match the IP address).
+- The device keeps the CAN error counters when a channel is closed and opened again (measured 2026-11-17: TX counter 128 after a frame with no acknowledgement, still 135 / Error Passive in the next session with no frame sent). The counter goes down by 1 for each frame sent with an acknowledgement.
+- A TLS handshake with the device takes about 80 ms. A request on an open HTTPS connection takes about 0.6 ms. The connection is closed when idle for a time between 5 s and 30 s.
 
 ## 8. How the work is done
 

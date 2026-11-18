@@ -20,13 +20,17 @@
 		<Item Name="CAN_Frame.ctl" Type="VI" URL="../Typedefs/CAN_Frame.ctl"/>
 		<Item Name="CANsub_Bit_Rates.ctl" Type="VI" URL="../Typedefs/CANsub_Bit_Rates.ctl"/>
 		<Item Name="CANsub_connection.ctl" Type="VI" URL="../Typedefs/CANsub_connection.ctl"/>
+		<Item Name="CANsub_Device_Status.ctl" Type="VI" URL="../Typedefs/CANsub_Device_Status.ctl"/>
 		<Item Name="Echo_Report.ctl" Type="VI" URL="../Typedefs/Echo_Report.ctl"/>
 		<Item Name="HTTP_Method.ctl" Type="VI" URL="../Typedefs/HTTP_Method.ctl"/>
 		<Item Name="Payload.ctl" Type="VI" URL="../Typedefs/Payload.ctl"/>
 		<Item Name="REST_Phase.ctl" Type="VI" URL="../Typedefs/REST_Phase.ctl"/>
 		<Item Name="WS_Frame.ctl" Type="VI" URL="../Typedefs/WS_Frame.ctl"/>
 	</Item>
+	<Item Name="CANsub_REST_Close.vi" Type="VI" URL="../CANsub_REST_Close.vi"/>
+	<Item Name="CANsub_REST_Open.vi" Type="VI" URL="../CANsub_REST_Open.vi"/>
 	<Item Name="CANsub_REST_Setup.vi" Type="VI" URL="../CANsub_REST_Setup.vi"/>
+	<Item Name="CANsub_REST_Status.vi" Type="VI" URL="../CANsub_REST_Status.vi"/>
 	<Item Name="CANsub_TLS_Connect.vi" Type="VI" URL="../CANsub_TLS_Connect.vi"/>
 	<Item Name="CANsub_WS_Close.vi" Type="VI" URL="../CANsub_WS_Close.vi"/>
 	<Item Name="REST_Call.vi" Type="VI" URL="../REST_Call.vi"/>
