@@ -110,7 +110,7 @@ python cansub_send.py --channel 192.168.0.49@1 --count 50 --period-ms 100
 
 ### Not known before the test
 
-- The default of `plugin gRPC address` (lvkit cannot read control defaults).
+- The default of `plugin gRPC address` (not read from the VI file).
 - Where the plugin gets its configuration at start. If a configuration file for the plugin name
   is on the PXIe, its `RX Interface` is used and not the default.
 - If the CIF and NI-XNET components that the two VIs need are on the PXIe.

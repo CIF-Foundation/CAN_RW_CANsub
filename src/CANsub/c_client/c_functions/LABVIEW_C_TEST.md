@@ -10,15 +10,15 @@ PXIe. Look-ups: the generated VIs' terminals are in `WIZARD.md` section 3; the C
 ## 1. Status and build order
 
 Do the rows in order. Stop at each test, send me the values, and save (I check the VIs with
-lvkit before the next row).
+the VI reader tool before the next row).
 
 | Row | Build | Test | Pass | Status |
 |---|---|---|---|---|
 | 1 | typedefs (section 3) | – | – | **done** 2026-10-30 |
 | 2 | W1 `C_Info`, W2 `C_CRC32`, W9 `C_Bit_Timing` | P1 smoke test | 6 values | **passed** 2026-10-30 |
-| 3 | helper `C_Check_Return`; W3–W7 (W8 optional) | P2 (reduced) | 2 rows per table; round trip 0 mismatches | **passed** 2026-11-02 (W3–W7 front-panel rows + round trip, reported by Marcus; W8 skipped) |
-| 4 | W10 `C_Encode_CAN_To_WS`, W11 `C_Decode_WS_To_CAN` | P3 helper round trip | 500 frames, 0 mismatches, ping + close | **passed** 2026-11-03 (500 / 0, ping `AB CD`, close; reported by Marcus) |
-| 5 | real-time layer: W12 `C_RX_Buffers_Init`, W13 `C_Decode_RT`, W14 `C_Echo_RT`, W15 `C_Encode_RT` | P3-RT | 500 frames, 0 mismatches, echoes and encodes equal to W10 | **passed** 2026-11-04 (reported by Marcus; Show Buffer Allocations: no copy on `buffers` in W13) |
+| 3 | helper `C_Check_Return`; W3–W7 (W8 optional) | P2 (reduced) | 2 rows per table; round trip 0 mismatches | **passed** 2026-11-02 (W3–W7 front-panel rows + round trip; W8 skipped) |
+| 4 | W10 `C_Encode_CAN_To_WS`, W11 `C_Decode_WS_To_CAN` | P3 helper round trip | 500 frames, 0 mismatches, ping + close | **passed** 2026-11-03 (500 / 0, ping `AB CD`, close) |
+| 5 | real-time layer: W12 `C_RX_Buffers_Init`, W13 `C_Decode_RT`, W14 `C_Echo_RT`, W15 `C_Encode_RT` | P3-RT | 500 frames, 0 mismatches, echoes and encodes equal to W10 | **passed** 2026-11-04 (Show Buffer Allocations: no copy on `buffers` in W13) |
 | 6 | CIF wrappers (library 1.2.0, `WIZARD.md` section 6 first): W16 `C_To_CIF_RT`, W17 `C_CIF_Encode_RT` | P6-CIF | 500 frames through CIF and back, equal to W10; NI's `Parse Next Socket CAN.vi` reads the packets | to do (for the CIF adapter) |
 
 P4 (C vs native G) is deferred with the native client. P5 (timing) is optional (section 9).

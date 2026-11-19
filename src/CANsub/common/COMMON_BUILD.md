@@ -286,7 +286,7 @@ itself (Case Structure on the error wire). The two CLFNs can be copied from
    from a **Clear Errors** of the error wire, so it also runs when Start TLS failed. Then **Merge
    Errors** with the main error wire.
 
-**Result 2026-11-05 (PXIe-8862, 192.168.0.49): PASS.** Built as above; lvkit review OK. Quick test 1:
+**Result 2026-11-05 (PXIe-8862, 192.168.0.49): PASS.** Built as above; VI review OK. Quick test 1:
 no error, `nodelay` 1, valid refnum. Quick test 2 (cert path does not exist): error 7 from Load
 Certificates Into Memory, `nodelay` 0, refnum invalid (no socket opened). NI help does not say whether Make
 TLS Configuration Immutable leaves the mutable configuration open. **Measured 2026-11-05:** a second

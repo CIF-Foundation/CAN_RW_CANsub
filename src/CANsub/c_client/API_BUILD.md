@@ -2,8 +2,8 @@
 
 > **Working document for step A** of `README.md` ("Where you are"). Design reference:
 > `ARCHITECTURE.md` (sections 2–5). This file says **what is built in ticket 3, in which order,
-> and how it is proven**. Build steps per VI are given in the conversation and reviewed with
-> lvkit, as for S3–S6. Status 2026-11-09: **plan; decisions D1–D3 taken by Marcus: all "a"
+> and how it is proven**. Each VI is built from written build steps and reviewed with
+> a VI reader tool, as for S3–S6. Status 2026-11-09: **plan; decisions D1–D3 taken: all "a"
 (section 2). Next: A0.**
 
 ## 1. Goal and proof
@@ -158,7 +158,7 @@ not known. The per-group p99 also moves by up to 222 µs between the two C runs 
 decides the p99 criterion; if the difference stays > 50 µs, a 60 s pair with `--csv` locates it.
 
 **1 h pair (2026-11-12, API 10:50–11:50, C 11:59–12:59; logs and panel screenshots in
-`C:\Users\mmonroe\Downloads\A6 Test Results`): A6 PASSED.**
+a local results folder, not in this repo): A6 PASSED.**
 
 | Value | C 1 h | API 1 h | Criterion |
 |---|---|---|---|
@@ -195,7 +195,7 @@ before Start TLS; new error **5005** "keepalive not set". Dead peer → kernel a
 New private subVI `api\Private\Lost_Error.vi` (Inline; `operation`, `cause` → 5203 with
 "`<operation>`: the connection is lost (cause: error `<code>`, `<source>`); call Close, then Open")
 replaces Error Cluster From Error Code + Merge Errors in both VIs (also removes the Send_TX typo
-"the Open"). lvkit review: correct.
+"the Open"). VI review: correct.
 
 **A7 results (2026-11-13, PXIe-8862, CANsub 192.168.0.49, cable pulled at the CANsub end):**
 
@@ -232,7 +232,7 @@ After A6: commit, then the CIF ticket (W16/W17, P6-CIF, adapter, `Config_FromJSO
 ## 6. Backlog (after ticket 3 and the CIF plugin)
 
 Compared on 2026-11-12 with the device interface (`skills/cansub-device/references/rest_api.md`,
-`websocket_protocol.md`; API 05.00, FW 02.05.0x). Priorities agreed with Marcus.
+`websocket_protocol.md`; API 05.00, FW 02.05.0x). Priorities agreed.
 
 ### 6.1 Already planned elsewhere
 
@@ -263,12 +263,12 @@ Compared on 2026-11-12 with the device interface (`skills/cansub-device/referenc
 | B8 | mTLS client certificate | `/api/client-cert` (Ethernet only; erased by a firmware update) | Only if the device is set to require client certificates. | low |
 | B9 | Channel discovery | `GET /api/can` → `[1,2,3,4]` | Convenience for tools. | low |
 | B10 | Device reboot | `POST /api/reboot` (202) | **Tool only, not in the API**: a reboot resets the clock and the PTP state. | tool |
-| B11 | **Single-channel monitor example** (`CANsub_API_Example.vi`): one channel, table of received frames, interactive **Send** button (classic/FD), status | – | Useful with any other CAN node (no CH1–CH2 loopback needed). Design given 2026-11-12; deferred by Marcus in favour of the loopback example (first example). Reuses `Example_Frames_To_Rows`, `Example_Table_Append`. | low (example) |
-| B12 | **Signal decode and encode from a CAN database (DBC)** | none: the REST API has no database function; webCAN decodes in the browser (inferred from the API, webCAN code not read) | For **standalone API use** (examples, monitor B11, test VIs). **Not for the CIF plugins**: they pass raw pcap packets, and signal decoding is expected in a different CIF plugin **[verify]**. Options: **(A)** NI-XNET conversion session (loads DBC/FIBEX, frames ↔ signals, no XNET hardware; NI-XNET must be on the target; time per conversion not measured) for a quick monitor; **(B)** convert the DBC offline with Python (cantools) to a table file + a new C function for signal extract and pack with that table (loop-safe, no allocation; one build step when the DBC changes) for the loop path; **(C)** DBC parser in LabVIEW (most work: multiplexed signals, value tables, byte order). Recommended: B for the loop, A for a monitor. Added 2026-11-16 (Marcus saw the DBC function in webCAN). | low (after the CIF plugins) |
-| B13 | **`Last Error` in the CIF `CAN Status`** (Stuff, Form, Ack, Bit1, Bit0, CRC) | not in `GET /api/can/{ch}`; the device reports the error type in error frames on the WebSocket (flag bits 8..12 of the decoded frame: 0 bit, 1 ack, 2 form, 3 stuff, 4 CRC) | The class `CAN RW CANsub` sets `Last Error` = None in Phase 1. To add it: `Read` keeps the type of the last error frame it sees (W16 skips error frames today and does not report the type), and `Update CAN Status` puts it into `CAN Status`. Needs a small change in the C function or a scan of the flags in LabVIEW. Decided 2026-11-17 (Marcus): backlog. | low |
-| B14 | **Bus Off test of the CIF class** (`Update CAN Status`) | `GET /api/can/{ch}` gives `"state":"bus_off"` | The mapping `bus_off` → Bus Off is in `Convert Device Status.vi` and is checked by review only (R6, 2026-11-18). Error Active and Error Passive are tested. Test steps: section 6.3. Decided 2026-11-18 (Marcus): backlog. | low (test) |
+| B11 | **Single-channel monitor example** (`CANsub_API_Example.vi`): one channel, table of received frames, interactive **Send** button (classic/FD), status | – | Useful with any other CAN node (no CH1–CH2 loopback needed). Design given 2026-11-12; deferred in favour of the loopback example (first example). Reuses `Example_Frames_To_Rows`, `Example_Table_Append`. | low (example) |
+| B12 | **Signal decode and encode from a CAN database (DBC)** | none: the REST API has no database function; webCAN decodes in the browser (inferred from the API, webCAN code not read) | For **standalone API use** (examples, monitor B11, test VIs). **Not for the CIF plugins**: they pass raw pcap packets, and signal decoding is expected in a different CIF plugin **[verify]**. Options: **(A)** NI-XNET conversion session (loads DBC/FIBEX, frames ↔ signals, no XNET hardware; NI-XNET must be on the target; time per conversion not measured) for a quick monitor; **(B)** convert the DBC offline with Python (cantools) to a table file + a new C function for signal extract and pack with that table (loop-safe, no allocation; one build step when the DBC changes) for the loop path; **(C)** DBC parser in LabVIEW (most work: multiplexed signals, value tables, byte order). Recommended: B for the loop, A for a monitor. Added 2026-11-16 (the DBC function was seen in webCAN). | low (after the CIF plugins) |
+| B13 | **`Last Error` in the CIF `CAN Status`** (Stuff, Form, Ack, Bit1, Bit0, CRC) | not in `GET /api/can/{ch}`; the device reports the error type in error frames on the WebSocket (flag bits 8..12 of the decoded frame: 0 bit, 1 ack, 2 form, 3 stuff, 4 CRC) | The class `CAN RW CANsub` sets `Last Error` = None in Phase 1. To add it: `Read` keeps the type of the last error frame it sees (W16 skips error frames today and does not report the type), and `Update CAN Status` puts it into `CAN Status`. Needs a small change in the C function or a scan of the flags in LabVIEW. Decided 2026-11-17: backlog. | low |
+| B14 | **Bus Off test of the CIF class** (`Update CAN Status`) | `GET /api/can/{ch}` gives `"state":"bus_off"` | The mapping `bus_off` → Bus Off is in `Convert Device Status.vi` and is checked by review only (R6, 2026-11-18). Error Active and Error Passive are tested. Test steps: section 6.3. Decided 2026-11-18: backlog. | low (test) |
 | B15 | **Socket options on Windows** (TCP_NODELAY, keepalive) | – | `CANsub_TLS_Connect.vi` and `CANsub_Set_Keepalive.vi` set the options only when `OS == Linux` (Conditional Disable Structure, 2026-11-18). On Windows the `Default` subdiagram sets no option: `nodelay` = 0, `results` empty, no error 5003 or 5005. Effect on Windows: more latency is possible (Nagle), and a lost connection is found later than the 3 s to 5.5 s measured on the PXIe (not measured on Windows). To add: `setsockopt` from `ws2_32.dll` in a `OS == Win` subdiagram (the option numbers are different from Linux). | low (the bench target is Linux RT) |
-| B16 | **Clock pair for the CIF external clock** (`Publish Clock`) | no call that gives the device time and the system time at the same moment; the device time is in each frame (`t_dev`, UTC, PTP) | The XNET class has `Get Time Pair.vi` (system time + hardware time, TAI); the plugins call it every 125 ms in `Update External Clock.vi` when `Publish Clock` is True. In Phase 1 the CANsub plugins do not publish a clock: the `True` case is empty, `Publish Clock` = True is ignored with no message (decided 2026-11-18, Marcus). Options to add it: **(A)** `Get Time Pair` in the class from the last received frame (`t_dev` + 37 s and the host time of the read; accuracy = the read delay, about 1 ms, and no pair on a silent bus); **(B)** if the target clock is PTP-synchronised to the device, the pair is the system time two times (offset 0); needs a check that the synchronisation is active. | low |
+| B16 | **Clock pair for the CIF external clock** (`Publish Clock`) | no call that gives the device time and the system time at the same moment; the device time is in each frame (`t_dev`, UTC, PTP) | The XNET class has `Get Time Pair.vi` (system time + hardware time, TAI); the plugins call it every 125 ms in `Update External Clock.vi` when `Publish Clock` is True. In Phase 1 the CANsub plugins do not publish a clock: the `True` case is empty, `Publish Clock` = True is ignored with no message (decided 2026-11-18). Options to add it: **(A)** `Get Time Pair` in the class from the last received frame (`t_dev` + 37 s and the host time of the read; accuracy = the read delay, about 1 ms, and no pair on a silent bus); **(B)** if the target clock is PTP-synchronised to the device, the pair is the system time two times (offset 0); needs a check that the synchronisation is active. | low |
 
 ### 6.3 Test steps for B14: Bus Off
 

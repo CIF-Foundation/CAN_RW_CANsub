@@ -1,6 +1,6 @@
 # `Test_V1_Duplex.vi`: proposed block diagram
 
-Status: **PROPOSED** (not built). Source: `ARCHITECTURE.md` section 9. Drawn in the lvkit netlist
+Status: **PROPOSED** (not built). Source: `ARCHITECTURE.md` section 9. Drawn in a netlist
 style, so it can be compared with `render` after the VI is built.
 
 Conventions: one box per node. SubVIs by file name, primitives by LabVIEW name. Structures are
@@ -198,5 +198,5 @@ Interpretation: the table in `ARCHITECTURE.md` section 9. The key comparison is 
 ## After you build it
 
 I run `index` (refresh), `unresolved`, then `render` on the VI, and compare with this design.
-Known blind spots for lvkit: TCP Open Connection, TCP Get Raw Net Object (inside C4), and CLFNs
+Known blind spots for the VI reader tool: TCP Open Connection, TCP Get Raw Net Object (inside C4), and CLFNs
 (untested).

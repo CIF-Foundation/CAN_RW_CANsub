@@ -6,7 +6,7 @@ are built and tested (S1–S6); the L2 API is built in ticket 3 (`API_BUILD.md`)
 `c_functions\LABVIEW_C_TEST.md` and the shared VIs of `..\common\COMMON_BUILD.md` become
 **private** parts of this API.
 
-Decisions this design follows (Marcus, 2026-10-23):
+Decisions this design follows (2026-10-23):
 
 | Question | Decision |
 |---|---|
@@ -147,7 +147,7 @@ caller's loop
   to the reader loop, which then does all the TCP I/O. That loop becomes an "I/O loop"; the
   caller's `Write` only enqueues.
 - **Hand-over from the reader loop to `Read`** (an L2-private decision; plugins do not see it).
-  **RT FIFOs do not take clusters** (confirmed by Marcus, 2026-10-23). Two candidates:
+  **RT FIFOs do not take clusters** (confirmed 2026-10-23). Two candidates:
 
   | Option | How | For | Against |
   |---|---|---|---|
@@ -279,7 +279,7 @@ wiring exists once, inside `Open`, `Read`, `Write_*` and `Close`, and the A/B ru
 
 | Item | Packaging |
 |---|---|
-**Decided 2026-11-12 (Marcus): no packed library for the API.** Applications and the CIF plugin
+**Decided 2026-11-12: no packed library for the API.** Applications and the CIF plugin
 use the **source libraries** directly (`CANsub_API.lvlib`, `CANsub_C.lvlib`,
 `CANsub_Common.lvlib`, `CANsub_Codec.lvlib`), from the repo. The rows below replace the earlier
 `CANsub_API.lvlibp` plan.

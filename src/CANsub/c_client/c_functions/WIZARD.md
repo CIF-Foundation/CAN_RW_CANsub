@@ -1,6 +1,6 @@
 # S2a: generate the codec VIs with the Import Shared Library wizard
 
-> **STATUS: DONE (2026-10-29), reviewed with lvkit.** Do not repeat this step. Use this file only
+> **STATUS: DONE (2026-10-29), reviewed with a VI reader tool.** Do not repeat this step. Use this file only
 > to **look up** the generated VIs (section 3: parameters by function; section 5: the library
 > path) or when `cansub_codec.h` changes ("Keep in step" at the end). The next step is S2b:
 > `LABVIEW_C_TEST.md`.
@@ -147,11 +147,11 @@ one state buffer per loop), error checking **Default**.
    on the block diagram.
 5. Tell me when it is saved. I run `index` (refresh), `unresolved` and `read_vi` on
    `codec_vis\` and check every CLFN against `cansub_codec.h`: type, pass mode, direction,
-   `Constant`, thread, library name. This is also the first test of lvkit on a CLFN.
+   `Constant`, thread, library name. This is also the first test of the VI reader tool on a CLFN.
 
 ## 5. Library path: static name or path on the diagram (decide by measurement)
 
-**Decision (Marcus, 2026-10-28):** on the target, the `.so` lives in **`/usr/local/lib`**,
+**Decision (2026-10-28):** on the target, the `.so` lives in **`/usr/local/lib`**,
 installed once for all plugins (README, "Deploy"). On Windows (editing and desktop tests), the
 DLL lives in `codec_vis\VIs\`, next to the generated VIs; commit it there (about 30 KB).
 
@@ -266,7 +266,7 @@ ones.
    `CANsub_Codec_LibPath.vi`; **Constant** on the rule-1 arrays; preallocated clone, inline,
    debugging off. Save All.
 5. Check: `csb version.vi` on the PXIe now returns **66048** (= `0x00010200`). Then I review the 3
-   new VIs with lvkit.
+   new VIs with a VI reader tool.
 
 ## 7. Update to 1.3.0: one new function, 2026-11-13
 
@@ -292,7 +292,7 @@ one.
    `CANsub_Codec_LibPath.vi`; **Constant** on the rule-1 arrays; preallocated clone, inline,
    debugging off. Save All.
 5. Check: `csb version.vi` on the PXIe now returns **66304** (= `0x00010300`). Then I review the
-   new VI with lvkit.
+   new VI with a VI reader tool.
 
 ## Keep in step
 

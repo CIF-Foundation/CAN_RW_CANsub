@@ -1,5 +1,5 @@
 """Python reference of NI's CIF Build Socket CAN.vi / Flatten SocketCAN Header.vi /
-Build Packet Header.vi (LabVIEW 2025 vi.lib, read with lvkit 2026-11-02), used to check
+Build Packet Header.vi (LabVIEW 2025 vi.lib, read with a VI reader tool 2026-11-02), used to check
 csb_frames_to_cif. Input = one decoded CANsub frame (t_dev UTC seconds, id, flags, data)."""
 import struct
 EPOCH_2025 = 1735689600

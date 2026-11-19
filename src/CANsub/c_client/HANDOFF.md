@@ -1,83 +1,55 @@
-# CANsub work: hand-over checkpoint
+# CANsub work: status checkpoint
 
-**Written 2026-11-13.** Read this file first if the work moves to a different person, PC or
-assistant session. It tells you the state, where each thing is, and how to continue. The step
-list with the status is in `README.md`, "Where you are".
+**Updated 2026-11-19.** Read this file first if the work moves to a different person or PC. It
+tells you the state, where each thing is, and how to continue. The step list with the status is
+in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 
 ## 1. State
 
 | Area | State |
 |---|---|
-| Device evaluation (Python harness, report) | done (October 2026). Files: `hil_test\` in the CANSub repo |
-| C codec library `libcansub_codec` 1.2.0 | done, deployed on the PXIe (`/usr/local/lib`), 1612 unit checks pass |
+| C codec library `libcansub_codec` 1.3.0 | done, 2221 unit checks pass on desktop Linux and on the PXIe |
 | LabVIEW wrappers, shared REST/TLS/WebSocket VIs | done and tested |
-| LabVIEW API `CANsub_API.lvlib` (Direct ownership, Poll mode) | done; 1 h A/B proof passed (`API_BUILD.md`) |
+| LabVIEW API `CANsub_API.lvlib` (Direct ownership, Poll mode) | done; 1 h proof run passed (`API_BUILD.md`) |
 | Loopback example | done (`examples\CANsub_API_Loopback_Example.vi`) |
-| Connection-loss detection (TCP keepalive, error 5203 with cause) | done and tested 2026-11-13 (`API_BUILD.md`, A7) |
-| CIF plugins | M0 (move) done 2026-11-13. R1 (C library 1.3.0, `csb_frames_to_pcap_range`) written and tested on the PC; not yet on the PXIe. Next: deploy 1.3.0, then R2 (`CIF_BUILD.md` section 6) |
-
-Last commits in the CANSub repo (branch `c-client`): `4f29add` A7, `afd71af` CIF plan,
-`6d96534` Jira tasks.
+| Connection-loss detection (TCP keepalive, error 5203 with cause) | done and tested |
+| Class `CAN RW CANsub.lvclass` (child of `CAN_RW_CORE`) | done and tested on the PXIe: open/close, streaming, CAN status |
+| Save version | all libraries, classes, VIs and controls are in LabVIEW 2021 format |
+| VI package | `VIPM\CAN RW CANsub.vipb`, version 0.1.0, builds with LabVIEW 2021 (64-bit) |
+| Reader and writer plugins (separate repos) | built and reviewed; not tested on the target yet |
 
 ## 2. Next steps (in order)
 
-1. **M0 (done 2026-11-13, commit `310567f`; the commands below are kept as a record):** move `labview\common` and `labview\c_client` to
-   `C:\Dev\CIF\CAN_RW_CANsub\src\CANsub\`, on a new branch `feature/cansub-rw-class`.
-   Commands: `CIF_BUILD.md` section 4 and the list below. 
-2. R1 to R10 in `CIF_BUILD.md` section 6 (C library 1.3.0, pcap wrapper VIs, `Write_Raw`,
-   the class `CAN RW CANsub.lvclass`, CAN status, the two plugins, bench test, packaging).
-3. Phase 2 (reader and writer on the same channel) after Phase 1.
-
-M0 commands (PowerShell):
-
-```
-cd C:\Dev\CIF\CAN_RW_CANsub
-git status
-git checkout -b feature/cansub-rw-class
-git -C C:\Dev\CANSub archive -o "$env:TEMP\cansub_move.zip" HEAD labview/common labview/c_client
-Expand-Archive "$env:TEMP\cansub_move.zip" "$env:TEMP\cansub_move"
-New-Item -ItemType Directory src\CANsub
-Move-Item "$env:TEMP\cansub_move\labview\common" src\CANsub\common
-Move-Item "$env:TEMP\cansub_move\labview\c_client" src\CANsub\c_client
-Copy-Item C:\Dev\CANSub\labview\c_client\codec_vis\VIs\*.dll src\CANsub\c_client\codec_vis\VIs\
-```
-
-Check (LabVIEW closed first): `Rename-Item C:\Dev\CANSub\labview labview_old`, open
-`src\CANsub\c_client\CANsub_C_Client.lvproj`, no missing items and no conflicts, run
-`Test_C_Smoke.vi` and the loopback example on the PXIe. Then commit in `CAN_RW_CANsub`, rename
-`labview_old` back, `git rm -r labview/common labview/c_client` in CANSub, commit, and delete the
-untracked remains of the two folders.
+1. Plugin tests on the target: `PLUGIN_TEST.md` (stage 1 reader alone, stage 2 writer and reader).
+2. Bench test with the CIF Manager, both plugins, 1 h, latency numbers.
+3. Packaging of the native library: name, install path, installers (`CIF_BUILD.md`, R10).
+4. Phase 2: reader and writer on the same channel (shared connection).
 
 ## 3. Open items that can block
 
-| Item | Who |
-|---|---|
-| Is the code permitted in `CAN_RW_CANsub` (CIF Foundation, Apache 2.0, public?) Do not push the branch before the answer. | Marcus |
-| Native library name and install path (`libcansub_codec.so` in `/usr/local/lib` today; the repo skeleton expects `libcansub_lv_wrapper.so` in `/usr/lib/cif/`) | Marcus + the skeleton author |
-| Do the reader plugin and the writer plugin run in one LabVIEW process? (needed for Phase 2) | to find out |
+| Item |
+|---|
+| Native library name and install path (`libcansub_codec.so` in `/usr/local/lib` today; the repo skeleton expects `libcansub_lv_wrapper.so` in `/usr/lib/cif/`) |
+| Do the reader plugin and the writer plugin run in one LabVIEW process? (needed for Phase 2) |
 
 ## 4. Where each thing is
 
 | What | Where |
 |---|---|
 | Step list and status | `README.md` (this folder), "Where you are" |
-| CIF plan, class design, design points P1 to P9, steps | `CIF_BUILD.md` |
-| API plan, A6 and A7 results, backlog B1 to B12 | `API_BUILD.md` |
+| CIF plan, class design, design points, steps | `CIF_BUILD.md` |
+| Plugin test plan | `PLUGIN_TEST.md` |
+| API plan, proof results, backlog B1 to B16 | `API_BUILD.md` |
 | Layers, rules, error codes | `ARCHITECTURE.md` |
 | Shared VIs C1 to C7, LabVIEW style rules | `..\common\COMMON_BUILD.md` |
 | C library, wrappers, tests | `c_functions\README.md`, `c_functions\LABVIEW_C_TEST.md`, `c_functions\WIZARD.md` |
-| Jira tasks for the CIF build (7 tasks, Markdown) | CANSub repo `hil_test\jira_cif_tasks.txt` |
-| Evaluation report, harness, device notes | CANSub repo `hil_test\` |
-| CIF repos | `C:\Dev\CIF\`: `CAN_RW_Core`, `CAN_RW_XNET`, `CAN_RW_CANsub`, `Plugin_CAN_Reader_CANsub`, `Plugin_CAN_Writer_CANsub` |
-| Presentation "CANsub HIL Integration" (6 slides) | Claude artifact, owned by Marcus (private until shared) |
-| Test results of the 1 h runs | `C:\Users\mmonroe\Downloads\A6 Test Results` |
 
-## 5. Bench
+## 5. Bench used for the tests
 
 | Item | Value |
 |---|---|
-| Device | CANsub.4, firmware 02.05.00, API 05.00, `192.168.0.49`, CH1 and CH2 connected with a loopback cable |
-| Target | NI PXIe-8862, NI Linux RT, LabVIEW 2025, interface `eno0` |
+| Device | CANsub.4, firmware 02.05.00, API 05.00, CH1 and CH2 connected with a loopback cable |
+| Target | NI PXIe-8862, NI Linux RT, LabVIEW 2025 |
 | Certificate on the target | `/home/lvuser/cansub_root_cert.crt` |
 | PTP client on the target (manual start, hardware mode) | `ptp4l -i eno0 -s -m` and `phc2sys -s eno0 -c CLOCK_REALTIME -w -m` |
 | Bit rates used | 500 kbit/s nominal, 2 Mbit/s data, sample points 80 % |
@@ -85,9 +57,9 @@ untracked remains of the two folders.
 ## 6. Decisions that stay valid
 
 - API: caller-owned frame buffers (`CANsub_Frames`), abstract `CANsub_Channel` + `CANsub_DirectChannel`, `Write_Frame` + `Write_Echo`.
-- No packed library for the API; applications and plugins use the source libraries.
-- CIF: one new class `CAN RW CANsub.lvclass` (child of `CAN_RW_CORE`); the plugins only replace the class. Interface string `<host>/<channel>`. Phase 1 = one plugin per channel.
-- One copy of the code only (after M0: in `CAN_RW_CANsub`). Backlog work is done there.
+- No packed library for the API; applications and plugins use the source libraries (installed by the VI package).
+- CIF: one class `CAN RW CANsub.lvclass` (child of `CAN_RW_CORE`); the plugins only replace the class. Interface string `<host>/<channel>`. Phase 1 = one plugin per channel.
+- Edit the class in this repo only, not in the installed `vi.lib` copy. A fix needs a new package build and install.
 
 ## 7. Device rules found by test
 
@@ -101,9 +73,8 @@ untracked remains of the two folders.
 - The device keeps the CAN error counters when a channel is closed and opened again (measured 2026-11-17: TX counter 128 after a frame with no acknowledgement, still 135 / Error Passive in the next session with no frame sent). The counter goes down by 1 for each frame sent with an acknowledgement.
 - A TLS handshake with the device takes about 80 ms. A request on an open HTTPS connection takes about 0.6 ms. The connection is closed when idle for a time between 5 s and 30 s.
 
-## 8. How the work is done
+## 8. Conventions
 
-- Marcus builds the VIs in LabVIEW. The assistant gives build steps (front panel table with the connector position, numbered block diagram steps with palette names, VI properties, checks, test) and reviews each saved VI with the lvkit reader.
-- Technical text in ASD-STE100 simplified English. Jira text in Markdown.
-- Commit messages start with the placeholder `<KEY>` for the Jira key. Marcus does the commits.
-- lvkit limits: it cannot see CLFN pass modes, the wire to a For Loop N terminal, or control defaults. Ask for a front-panel check for these. `index` and `query` time out on the CIF plugin repos; `read_vi` and `read_ctl` by path work.
+- Technical text in ASD-STE100 simplified English.
+- LabVIEW style rules: `..\common\COMMON_BUILD.md`.
+- Limits of a file-based VI review (no LabVIEW open): the pass modes of a Call Library Function Node, the wire to a For Loop N terminal, control defaults, and the wires inside a Conditional or Diagram Disable Structure cannot be read from the VI file. Check these on the diagram.

@@ -182,7 +182,7 @@ in `csb_decode_ws_to_can`, and the reverse.
 
 ## pcap CAN packets (1.2.0): the NI CIF format
 
-Checked with lvkit on 2026-11-02 against LabVIEW 2025 `vi.lib\CIF Foundation\CIF PCAP Parse and
+Checked with a VI reader tool on 2026-11-02 against LabVIEW 2025 `vi.lib\CIF Foundation\CIF PCAP Parse and
 Build`: `Example\Build Socket CAN.vi`, `Build\SubVIs\Flatten SocketCAN Header.vi`, `Build\Build
 Packet Header.vi` (+ `Flatten Packet Header.vi`) and `Example\Parse Next Socket CAN.vi`. Format:
 [LINKTYPE_CAN_SOCKETCAN](https://www.tcpdump.org/linktypes/LINKTYPE_CAN_SOCKETCAN.html).
@@ -207,7 +207,7 @@ One packet per CAN frame, packets concatenated (the stream that `Parse Next Sock
 
 **Correction 2026-11-16:** the CIF CAN plugins use a **little-endian** pcap header (`CAN_RW_CORE` sets the NI pcap class to Little Endian; measured with NI's `Parse Next Socket CAN.vi`). Use `CSB_PCAP_LITTLE_ENDIAN` for CIF. The library default stays big-endian.
 
-Decisions (Marcus, 2026-11-02): pcap header **big-endian** (superseded for CIF, see above); time base **TAI** (TAI = UTC + 37 s;
+Decisions (2026-11-02): pcap header **big-endian** (superseded for CIF, see above); time base **TAI** (TAI = UTC + 37 s;
 the C functions take the offset as a parameter, `CSB_TAI_MINUS_UTC`); **TX acks and error frames
 are skipped** by default (options `CSB_PCAP_KEEP_TX_ACK`, `CSB_PCAP_KEEP_ERRORS`; CIF's parser has
 no error frames and ignores the error flag). The CANsub cannot transmit remote or error frames, so
