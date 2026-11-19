@@ -16,8 +16,10 @@ a loopback cable.
   the plugin, links test channels, starts the plugin, and exchanges data with the CAN FIFO of the
   plugin. The reader version shows the received frames. The writer version sends the frames of
   its `CAN Data` control every 100 ms.
-- **Sender**: `C:\Dev\CANSub\hil_test\cansub_send.py` on the PC (python-can). Frame k has the ID
-  `0x100 + k mod 4`, and the data is k as 8 bytes, big-endian.
+- **Sender**: the script `cansub_send.py` (python-can with the `cansub` interface), run on the
+  PXIe in the Python environment `/home/admin/cansub-venv`. The PC has no environment with
+  python-can-cansub. Frame k has the ID `0x100 + k mod 4`, and the data is k as 8 bytes,
+  big-endian.
 
 ## Stage 1: reader plugin alone
 
@@ -68,9 +70,17 @@ The sender owns CH1. The reader plugin owns CH2.
 
 **Run 2: 50 frames** (the two VIs still run)
 
+One time, from the PC (copy the script to the PXIe):
+
 ```
-cd C:\Dev\CANSub\hil_test
-python cansub_send.py --channel 192.168.0.49@1 --count 50 --period-ms 100
+scp cansub_send.py admin@<rt-ip>:/home/admin/
+```
+
+Then in an SSH session on the PXIe:
+
+```
+source /home/admin/cansub-venv/bin/activate
+python /home/admin/cansub_send.py --channel 192.168.0.49@1 --count 50 --period-ms 100
 ```
 
 | Item | Expected |

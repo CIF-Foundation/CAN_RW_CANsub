@@ -71,6 +71,7 @@ in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 - After a cable pull, the device frees the channel itself; no DELETE is necessary.
 - REST calls need "verify server" off (the certificate name does not match the IP address).
 - The device keeps the CAN error counters when a channel is closed and opened again (measured 2026-11-17: TX counter 128 after a frame with no acknowledgement, still 135 / Error Passive in the next session with no frame sent). The counter goes down by 1 for each frame sent with an acknowledgement.
+- **No fast REST polling (measured 2026-11-19).** REST calls with no pause on one open HTTPS connection stopped the HTTP server of the device after 185 calls: the open connection got no answer for more than 5 s, and new clients failed (TLS handshake not completed, or header received and no body). Ping stayed good. The server recovered by itself in a few minutes, with no power cycle. At 2 calls in each second on an open connection, a second client got its answers in 77 ms. The reader plugin caused the same stop, because the plugin `Logic.vi` calls `Update CAN Status` in each cycle; so the class limits the REST status call to one in each second.
 - A TLS handshake with the device takes about 80 ms. A request on an open HTTPS connection takes about 0.6 ms. The connection is closed when idle for a time between 5 s and 30 s.
 
 ## 8. Conventions

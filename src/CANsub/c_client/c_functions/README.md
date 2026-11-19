@@ -5,6 +5,55 @@ Part of the **C client** project (`labview\c_client\README.md`). C versions of t
 2.0), plus two one-call helpers for the echo loop. Same algorithms, same byte layouts, same test
 vectors. Use it to compare with the G versions, or instead of them.
 
+## Build the native library (quick guide)
+
+One C source (`cansub_codec.c`) gives two binaries. The binaries are **not in git** (`.gitignore`
+excludes `*.dll` and `*.so`); build them after a new clone and after each change of the C source.
+The build runs on Linux x86-64 (a Linux PC or WSL) with `gcc`, `make` and Python 3.
+
+| Binary | For | Where it must be |
+|---|---|---|
+| `libcansub_codec.so` | NI Linux RT x64 target (and desktop Linux) | on the target: `/usr/local/lib/`, then `ldconfig` |
+| `libcansub_codec.dll` | LabVIEW on Windows x64 (development PC) | next to the codec VIs: `src\CANsub\c_client\codec_vis\VIs\`. The VI package takes it from there and installs it with the VIs |
+
+**1. Build and test (Linux, in this folder)**
+
+```
+make            # libcansub_codec.so
+make test       # expected: 2221 checks, 0 failures, ALL PASS
+make dist       # dist/: the .so, static test and bench programs, crosscheck.py, SHA256SUMS
+pip install ziglang==0.13.0     # one time, cross-compiler for the DLL
+make wizard     # wizard/: libcansub_codec.dll, test_cansub_codec_win.exe, header for the LabVIEW wizard
+```
+
+**2. The `.so` on the target** (from the PC, then on the target as admin)
+
+```
+ssh admin@<rt-ip> "rm -rf /home/admin/csb_dist"
+scp -r dist admin@<rt-ip>:/home/admin/csb_dist
+```
+
+```
+cd /home/admin/csb_dist
+chmod +x *_static
+sha256sum -c SHA256SUMS
+./test_cansub_codec_static                 # ALL PASS
+cp libcansub_codec.so /usr/local/lib/ && ldconfig
+```
+
+**3. The `.dll` on Windows** (PowerShell, in `wizard\`)
+
+```
+.\test_cansub_codec_win.exe                # the C checks against the DLL
+Copy-Item libcansub_codec.dll ..\..\codec_vis\VIs\ -Force
+```
+
+**4. Check from LabVIEW:** `tests\Test_C_Smoke.vi` must show version **66304** (1.3.0) on Windows
+and on the target.
+
+A new C function also needs a new generated VI: `WIZARD.md`. More detail on the target build and
+the properties of the `.so`: "Deploy" below.
+
 | File | Purpose |
 |---|---|
 | `cansub_codec.h` / `cansub_codec.c` | the library (C11 with GNU extensions; no malloc, no global state, thread-safe) |
