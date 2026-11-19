@@ -96,6 +96,7 @@ AddOutputFilter chunkFilter
 		<Item Name="Tests" Type="Folder">
 			<Item Name="Test CAN Status.vi" Type="VI" URL="../Test CAN Status.vi"/>
 			<Item Name="Test Open Close.vi" Type="VI" URL="../Test Open Close.vi"/>
+			<Item Name="Test Status Rate.vi" Type="VI" URL="../Test Status Rate.vi"/>
 			<Item Name="Test Streaming.vi" Type="VI" URL="../Test Streaming.vi"/>
 		</Item>
 		<Item Name="CAN RW CANsub.lvclass" Type="LVClass" URL="../../CAN RW CANsub.lvclass"/>

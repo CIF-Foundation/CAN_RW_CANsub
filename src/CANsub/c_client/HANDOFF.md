@@ -78,4 +78,5 @@ in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 
 - Technical text in ASD-STE100 simplified English.
 - LabVIEW style rules: `..\common\COMMON_BUILD.md`.
+- **File format rule (found by test, 2026-11-19).** All LabVIEW files of this repo are in LabVIEW 2021 format (save version `21.0`). A save from under a real-time target in a project writes the editor format (2025) and ignores the save version, although the toolbar shows `21.0`. A save from the main context (the file opened with no project) or from My Computer writes the 2021 format. So: edit and run under the target, then open each changed file with no project, make it dirty and save it, before a commit and before a package build. A package build with LabVIEW 2021 cannot load a file in 2025 format.
 - Limits of a file-based VI review (no LabVIEW open): the pass modes of a Call Library Function Node, the wire to a For Loop N terminal, control defaults, and the wires inside a Conditional or Diagram Disable Structure cannot be read from the VI file. Check these on the diagram.
