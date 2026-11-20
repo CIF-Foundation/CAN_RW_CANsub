@@ -384,3 +384,38 @@ corrupted). The test separates the three cases: **parallel**, **serialized** and
 
 Report the numbers; Reader mode is designed only after V1. Poll mode does not depend on V1:
 there, one loop does both read and write.
+
+## 10. Security of the connection to the device
+
+**All traffic between the host and the CANsub is encrypted.** The device accepts TLS on TCP port
+443 only: the REST calls (HTTPS) and the CAN frames (WebSocket over TLS). It has no unencrypted
+mode. Cipher on the bench device (firmware 02.05.00, seen with `curl -v` on 2026-11-19):
+`ECDHE-ECDSA-AES128-GCM-SHA256`, TLS 1.2.
+
+| A tap on the Ethernet cable can see | It cannot see |
+|---|---|
+| the two addresses and port 443 | CAN IDs, data bytes, time stamps |
+| the device certificate (it contains the device ID) | the REST calls and their content |
+| the size and time of each TLS record (the amount of bus traffic can be estimated) | – |
+
+The key exchange is ECDHE, so each connection has its own session keys and a recording cannot be
+decoded later. The file `common\cansub_root_cert.crt` is the public root certificate of the
+device maker; it holds no secret.
+
+**To look at the CAN data on purpose:** tap the CAN bus (not encrypted), or use the pcap packets
+that the class gives to the host (`Read`). A network capture can be decoded only with the session
+keys of one endpoint (a Python client can write them with `SSLKEYLOGFILE`; the LabVIEW TLS
+functions have no such option that we know of). A second client on the same channel is not
+possible (one WebSocket client for each channel).
+
+**Checks that this client makes, and their limits:**
+
+| Connection | Check of the device | Limit |
+|---|---|---|
+| WebSocket (`CANsub_TLS_Connect.vi`) | the certificate chain must end at the CANsub root certificate | the host name is not checked, because the client connects by IP address and the certificate names only `<ID>-eth.local` / `<ID>-usb.local` |
+| REST (`CANsub_REST_Setup.vi`, `CANsub_REST_Open.vi`, `CANsub_WS_Close.vi`) | none: "verify server" is off, for the same name reason | a different device at the same address would be accepted for REST calls |
+
+The client sends no password or token; the device has no user login. So the protection against a
+wrong or false device is weaker than the protection against reading. This is acceptable on an
+isolated bench network and is a known limit on a shared network. The device documentation also
+describes client certificates (mutual TLS, `/api/client-cert`); this client does not use them.
