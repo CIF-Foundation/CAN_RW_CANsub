@@ -1,7 +1,7 @@
-<VI_Package_Builder_Settings Version="2020.1" Created_Date="2025-02-08 07:45:01" Modified_Date="2026-11-19 17:41:40" Creator="toddw" Comments="" ID="7e4920192ff29ff2b02e47ecff1c3f4d">
+<VI_Package_Builder_Settings Version="2020.1" Created_Date="2025-02-08 07:45:01" Modified_Date="2026-11-20 15:20:07" Creator="toddw" Comments="" ID="ef451799a9e6092930fca00fef02fff4">
   <Library_General_Settings>
     <Package_File_Name>CIF_Foundation_lib_CAN_RW_CANsub</Package_File_Name>
-    <Library_Version>0.1.0.3</Library_Version>
+    <Library_Version>0.1.0.4</Library_Version>
     <Auto_Increment_Version>true</Auto_Increment_Version>
     <Library_Source_Folder>..\src</Library_Source_Folder>
     <Library_Output_Folder>..\..\builds\VIPM</Library_Output_Folder>
@@ -37,7 +37,8 @@
       <Packager>DOME Automation</Packager>
       <URL/>
       <Release_Notes>0.1.0: first package for bench tests. Class CAN RW CANsub with the CANsub API, C wrapper, codec and common libraries. Not tested with the plugins yet.
-0.1.0.2: Update CAN Status makes one REST call in each second at most (to prevent overwhelming the device).</Release_Notes>
+0.1.0.2: Update CAN Status makes one REST call in each second at most (to prevent overwhelming the device).
+0.1.0.3: a failed status call does not stop the channel (errors 5303, 5304); pause between the REST calls of the channel open.: </Release_Notes>
     </Description>
     <Destinations>
       <Toolkit_VIs>
@@ -366,7 +367,7 @@
         <Path>..\src\Utilities\Update CAN Status.vi</Path>
         <VI_Title/>
       </Items_Data>
-      <GUID>0BCCB8B10255670E8CA2EF695CD42463</GUID>
+      <GUID>B0355DF9B2AAC448166F7CDC8459856E</GUID>
     </Functions_Palette_Data>
   </Library_Palette_Definition>
 </VI_Package_Builder_Settings>
