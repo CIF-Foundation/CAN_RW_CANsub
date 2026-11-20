@@ -221,6 +221,7 @@ monitor values.
 | 5 start and stop cycles, reader unloaded first | no failure |
 | 5 start and stop cycles, writer unloaded first | no failure |
 | second 10 minutes | reader `Ctr` 6055 at the stop; REST 5 of 5 (74 ms to 82 ms) |
+| 10 minutes with package 0.1.0.3 (status failure policy, pause in the channel open) | no failure, about 6,000 frames; REST answered during the run; clean stop |
 
 Before the restart of the device, the same test failed at random times (4 of 12 cycles, then 1 of
 10): the REST server of the device stopped for 20 s to 30 s and the device closed the open
