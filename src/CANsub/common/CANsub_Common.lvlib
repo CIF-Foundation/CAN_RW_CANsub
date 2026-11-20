@@ -1,5 +1,6 @@
 ﻿<?xml version='1.0' encoding='UTF-8'?>
 <Library LVVersion="21008000">
+	<Property Name="NI.Lib.HelpPath" Type="Str"></Property>
 	<Property Name="NI.Lib.Icon" Type="Bin">)1#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!*,!!!*Q(C=\&gt;7R&lt;BJ"%-&lt;R,Z;,N%CGDXC&amp;K&gt;,T"*(Q%VDT"*&amp;I+6*1JRPX.(2*:^'ZMTR6?KLUP-,ZP]M%K%RD2V(%(9O0\X:H@_Q&gt;:[FP([6L$??W];M&lt;ZXO8^F;P&amp;L7D0H&lt;Y=W,@_KHK??RU#)&lt;BJ.,J_/&amp;1&gt;8Q=OD^R-O"9]$DUL0`-JMNWW@\P&lt;8(W2`$OPY-0;A]C7N+#ZD24GX:)]C20]C20]C10]C!0]C!0]C"X=C&gt;X=C&gt;X=C=X=C-X=C-X=C0P/\H)23ZS3-HES52*U;2!UBG+EL@%EXA34_,BIR*0YEE]C3@RU%7**`%EHM34?"CGR*.Y%E`C34S5[J,M/TG?R%.Z":\!%XA#4_"B3A7?!""-&amp;B1/CM"1=$)Y#$S"*`"QK-!4?!*0Y!E]H&amp;&lt;A#4S"*`!%(I&lt;U69GO;4MZ(ML)]4A?R_.Y(!_FZ8A=D_.R0)[([?2Y()_$=#:UCE/1-]DJY(RQ0)[(0X)]DM@R/"\(Q[F_B&lt;SP4./UH2S0Y4%]BM@Q'"Z+S0!9(M.D?!Q0:76Y$)`B-4S'B[FE?!S0Y4%ARK2-,[/9-&gt;$I:!3'BV?`7[R@J?A3[\N5.[`KJF4&gt;&lt;+K&lt;3(6TK#[[[G+K,J*K]67,KFIMV3+IPJQ+L=+I*F%.&lt;BWVYXV,W^$7N#6N4JP2JL1*&lt;&gt;3'PH((X7[H\8;LT7;D^8KNZ8+J_8SOW7SG[83KS73CU7BU?!R]9D]]%0&lt;0J18(0\Z`@8C[`\:[P,V\?0ZVM`LZZ@@HFP_&amp;`]``Q,.26TK&gt;AT6[!&lt;!\87-!!!!!</Property>
 	<Property Name="NI.Lib.Version" Type="Str">1.0.0.0</Property>
 	<Property Name="NI.LV.All.SaveVersion" Type="Str">21.0</Property>
@@ -34,6 +35,7 @@
 	<Item Name="CANsub_TLS_Connect.vi" Type="VI" URL="../CANsub_TLS_Connect.vi"/>
 	<Item Name="CANsub_WS_Close.vi" Type="VI" URL="../CANsub_WS_Close.vi"/>
 	<Item Name="REST_Call.vi" Type="VI" URL="../REST_Call.vi"/>
+	<Item Name="REST_Call_Paced.vi" Type="VI" URL="../REST_Call_Paced.vi"/>
 	<Item Name="REST_Expect.vi" Type="VI" URL="../REST_Expect.vi"/>
 	<Item Name="WS_Handshake.vi" Type="VI" URL="../WS_Handshake.vi"/>
 </Library>
