@@ -28,3 +28,10 @@ src/Wrapper/build/
 Installers/staging/
 Installers/output/
 Installers/*.deb
+
+# CANsub C library build outputs
+src/CANsub/c_client/c_functions/test_cansub_codec
+src/CANsub/c_client/c_functions/test_cansub_codec_asan
+src/CANsub/c_client/c_functions/bench_cansub_codec
+src/CANsub/c_client/c_functions/dist/
+src/CANsub/c_client/c_functions/wizard/

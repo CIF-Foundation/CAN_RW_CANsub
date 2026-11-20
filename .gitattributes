@@ -2,3 +2,7 @@
 Installers/opkg-utils/opkg-build text eol=lf
 Installers/lv_cansub_deb/DEBIAN/* text eol=lf
 Installers/lv_cansub_ipk/CONTROL/* text eol=lf
+
+# CANsub C library: built with make/gcc on Linux and on the NI Linux RT target: always LF
+src/CANsub/c_client/c_functions/** text eol=lf
+*.py text eol=lf
