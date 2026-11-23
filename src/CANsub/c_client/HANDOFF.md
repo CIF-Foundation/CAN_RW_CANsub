@@ -1,6 +1,6 @@
 # CANsub work: status checkpoint
 
-**Updated 2026-11-19.** Read this file first if the work moves to a different person or PC. It
+**Updated 2026-11-23.** Read this file first if the work moves to a different person or PC. It
 tells you the state, where each thing is, and how to continue. The step list with the status is
 in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 
@@ -16,21 +16,20 @@ in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 | Class `CAN RW CANsub.lvclass` (child of `CAN_RW_CORE`) | done and tested on the PXIe: open/close, streaming, CAN status |
 | Save version | all libraries, classes, VIs and controls are in LabVIEW 2021 format |
 | VI package | `VIPM\CAN RW CANsub.vipb`, version 0.1.0, builds with LabVIEW 2021 (64-bit) |
-| Reader and writer plugins (separate repos) | built and reviewed; not tested on the target yet |
+| Reader and writer plugins (separate repos) | tested on the target: from source (stage 1, stage 2) and as packed libraries with the CIF Manager, 1 h, no lost frame (stage 3). Results and latency: `PLUGIN_TEST.md` |
 
 ## 2. Next steps (in order)
 
-1. Plugin tests on the target: `PLUGIN_TEST.md` (stage 1 reader alone, stage 2 writer and reader).
-2. Bench test with the CIF Manager, both plugins, 1 h, latency numbers.
-3. Packaging of the native library: name, install path, installers (`CIF_BUILD.md`, R10).
-4. Phase 2: reader and writer on the same channel (shared connection).
+1. Open items of stage 3 (`PLUGIN_TEST.md`, "Open after stage 3").
+2. Packaging of the native library: name, install path, installers (`CIF_BUILD.md`, R10).
+3. Phase 2: reader and writer on the same channel (shared connection).
 
 ## 3. Open items that can block
 
 | Item |
 |---|
 | Native library name and install path (`libcansub_codec.so` in `/usr/local/lib` today; the repo skeleton expects `libcansub_lv_wrapper.so` in `/usr/lib/cif/`) |
-| Do the reader plugin and the writer plugin run in one LabVIEW process? (needed for Phase 2) |
+| Answered 2026-11-23: the reader plugin and the writer plugin run in one LabVIEW process (the default plugin loader of the CIF Manager) |
 
 ## 4. Where each thing is
 

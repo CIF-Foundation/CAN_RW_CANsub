@@ -240,7 +240,7 @@ effect, `GetDevices` returns an empty list, `SetInterfaceBlink` returns an error
 
 ## Stage 3 (R9): bench test with the CIF Manager
 
-**Status 2026-11-20: preparation.** Decisions: the CIF Manager loads the reader and the writer
+**Status 2026-11-23: done, see the result below.** Decisions: the CIF Manager loads the reader and the writer
 plugin; the test helpers feed the writer and read the reader (no third plugin). Latency to
 measure: the reader path, the writer path, and the full loop. Run time 1 h.
 
@@ -278,21 +278,79 @@ From the PC: `Test-NetConnection <rt-ip> -Port 15882`.
 | a `LISTEN` line for `:15882`, two `lvrt` processes | the manager runs |
 | no line for 15882 | the manager does not run |
 
-### How the latency is measured (plan)
+### How the plugins are built and loaded
 
-- Reader path: the time of the frame on the bus (in the packet, device clock) against the time
-  when the packet is in the CIF FIFO (target clock, PTP).
-- Writer path: the time when the helper puts the packet into the FIFO against the time of the
-  frame on the bus (transmit acknowledgement of CH1, or the receive time on CH2).
-- Full loop: writer FIFO in to reader FIFO out, both on the target clock.
-- Check `GET /api/time/ptp` (`"state":"tracking"`) before each run; the first two values depend
-  on the PTP offset between the target and the device.
+| Item | Detail |
+|---|---|
+| Build | `Build Library\CAN_<Reader or Writer>_CANsub_BuildRT.lvproj`, build specification `PluginRT` |
+| Output | `C:\Users\Public\Documents\CIF\builds\CAN_<...>_CANsubPlugin\rt\CAN_<...>_CANsub_Plugin.1.0.0.lvlibp` |
+| On the target | `/usr/local/cif/plugins/<Type>.<x.y.z>.lvlibp` |
+| Load | CIF Manager UI on the PC, or `cif_manager_tool.py` (gRPC, port 15882) |
+| Processes on the target | three `lvrt` processes: the normal runtime (test helpers), the manager, and the default plugin loader. The reader and the writer plugin run together in the default loader process. |
 
-### Open before the steps can be written
+### How the latency is measured
 
-- The output of step 1.
-- How a plugin must be built and where its files must be on the target (plugin build projects,
-  `Build Library\`; the plugin build projects have no save version setting, and the plugins
-  depend on the installed `CIF CAN RW CANsub` package).
-- Does the manager run each plugin in its own process? (also the open Phase 2 question; it
-  decides how the plugins find `libcansub_codec.so` and the certificate)
+| Time | Source | Clock |
+|---|---|---|
+| `T_Out` | planned send time; `Latency Writer.vi` sets it in the FIFO header and in the frame data (I64, big-endian) | target, UTC |
+| `t_bus` | time of the frame on the bus, in the pcap packet | device (PTP), TAI |
+| `T0` | time in the header of the reader FIFO | target, UTC |
+
+- Writer path = `t_bus - (T_Out + correction)`. Reader path = `(T0 + correction) - t_bus`.
+  Full loop = `T0 - T_Out`. Correction = 37 s (TAI - UTC).
+- The full loop uses the target clock only. The split into writer path and reader path includes
+  the clock offset of the device against the PTP master.
+- Writer plugin `Wake Offset (us)` = 100, so a frame is on the bus a few microseconds before `T_Out`.
+- Check `GET /api/time/ptp` before each run. Start the PTP client on the target with
+  `ptp4l -i eno0 -s -m` and `phc2sys -s eno0 -c CLOCK_REALTIME -w -m`.
+
+### Result of stage 3 (2026-11-23, package 0.1.0.3, plugins loaded by the CIF Manager): PASS, with one limit
+
+**Run 1: 2 min, 10 frames in each second, 1,334 frames**
+
+| Metric | Median | 99 % | Maximum |
+|---|---|---|---|
+| Full loop | 640 us | 1,180 us | 1,395 us |
+| Reader path | 650 us | 1,190 us | - |
+| Writer path | mean -10.0 us | - | +60.7 us (minimum -21.8 us) |
+
+**Run 2: 60 min (19:04 to 20:05 UTC), 231,289 frames**
+
+| Criterion | Result |
+|---|---|
+| Lost frames | 0: reader count = `frame_count` of channel 2 = 231,289. The counters of channel 1 and channel 2 were equal in six readings during the run. |
+| Bus errors | 0, state `error_active` in all readings |
+| Plugin errors | none, `cif_error.log` empty |
+| REST server of the device | answered in all readings |
+| Writer **FIFO Drops** | 0 |
+
+| Metric | Median | 90 % | 99 % | 99.9 % | 99.99 % | Maximum |
+|---|---|---|---|---|---|---|
+| Full loop | 640 us | 840 us | 890 us | 1,010 us | 1,600 us | 17,074 us |
+| Reader path | 650 us | 840 us | 890 us | 920 us | 1,340 us | 17,058 us |
+| Writer path | mean -0.8 us | - | 190 us | 210 us | 750 us | 964 us (minimum -45.7 us) |
+
+Two frames in the hour were slow in the reader path (about 7 ms and 17 ms). The cause is not known.
+
+**Limit of run 2: 64 frames in each second, not 100.** The helper made 362,265 write calls
+(100 in each second); 231,289 frames reached the bus. `Latency Writer.vi` calls
+`Write CAN FIFO.vi` with a timeout of 0 and does not read `timed out?`, and `sent` counts the
+calls. With `Offset (ns)` = 1E9 the FIFO was full, and a write to a full FIFO is dropped with no
+count. With `Offset (ns)` = 1E8, 100 frames in each second reached the bus (observed, not
+recorded). The FIFO depth of 64 is probable from the rate, not confirmed.
+
+**Observations, not examined**
+
+- After the stop, `frame_count` of channel 1 was 231,262 (27 less than channel 2).
+- Memory (RSS) of the plugin loader process: 1,164,972 kB before the start, 1,165,996 kB from
+  10 to 50 min, 1,178,028 kB at 60 min. The level before a run goes up when plugins are unloaded
+  and loaded again (212 MB with no plugin, 774 MB after the first load, 1,165 MB before run 2).
+- Device clock offset (`offset_ns`) in seven readings: 292 to 1,204 in four, and -3,235, -9,530
+  and 92,689 in three.
+
+### Open after stage 3
+
+- Count `timed out?` in `Latency Writer.vi`; then a 1 h run at a real 100 frames in each second.
+- Memory test: load and unload the plugins some times and read the RSS.
+- Cause of the two slow frames in the reader path.
+- Test with a REST server that stops; start of four plugins at the same moment.
