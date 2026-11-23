@@ -240,4 +240,59 @@ effect, `GetDevices` returns an empty list, `SetInterfaceBlink` returns an error
 
 ## Stage 3 (R9): bench test with the CIF Manager
 
-Not written yet: both plugins loaded by the CIF Manager, 1 h run, latency numbers.
+**Status 2026-11-20: preparation.** Decisions: the CIF Manager loads the reader and the writer
+plugin; the test helpers feed the writer and read the reader (no third plugin). Latency to
+measure: the reader path, the writer path, and the full loop. Run time 1 h.
+
+### Facts about the CIF Manager on the target (from the `CIF_Manager` repo)
+
+| Item | Detail |
+|---|---|
+| Install package | `cif-lvcore` (`.ipk` for NI Linux RT) |
+| Manager program | `/usr/local/cif/manager/cif_manager_startup.rtexe`, a link to the version for the LabVIEW runtime on the target (21, 23 or 25) |
+| How it runs | a second LabVIEW runtime process (`lvrt`), started with `launch_lvrt_cif.sh` or `launch_rt.py` |
+| Network port | gRPC on TCP port 15882 |
+| Settings file | `/home/lvuser/CIF/cif.conf` |
+| Logs | `/var/local/cif/logs/` (`cif_info.log`, `cif_error.log`, `cif_config.log`), time in UTC |
+
+### Step 1. Is the CIF Manager installed and running? (SSH session on the target)
+
+```
+opkg list-installed | grep -i cif
+ls -l /usr/local/cif/manager/
+ls -l /usr/local/cif/manager/loaders/
+opkg list-installed | grep labview-realtime
+ps aux | grep -E "lvrt|cif" | grep -v grep
+netstat -ltnp 2>/dev/null | grep 15882
+tail -n 20 /var/local/cif/logs/cif_info.log
+ls /usr/local/cif/
+ls /home/lvuser/CIF/ 2>/dev/null
+```
+
+From the PC: `Test-NetConnection <rt-ip> -Port 15882`.
+
+| Result | Meaning |
+|---|---|
+| a line with `cif-lvcore` | the package is installed |
+| `cif_manager_startup.rtexe -> ..._25.rtexe` | the link agrees with a LabVIEW 2025 runtime |
+| a `LISTEN` line for `:15882`, two `lvrt` processes | the manager runs |
+| no line for 15882 | the manager does not run |
+
+### How the latency is measured (plan)
+
+- Reader path: the time of the frame on the bus (in the packet, device clock) against the time
+  when the packet is in the CIF FIFO (target clock, PTP).
+- Writer path: the time when the helper puts the packet into the FIFO against the time of the
+  frame on the bus (transmit acknowledgement of CH1, or the receive time on CH2).
+- Full loop: writer FIFO in to reader FIFO out, both on the target clock.
+- Check `GET /api/time/ptp` (`"state":"tracking"`) before each run; the first two values depend
+  on the PTP offset between the target and the device.
+
+### Open before the steps can be written
+
+- The output of step 1.
+- How a plugin must be built and where its files must be on the target (plugin build projects,
+  `Build Library\`; the plugin build projects have no save version setting, and the plugins
+  depend on the installed `CIF CAN RW CANsub` package).
+- Does the manager run each plugin in its own process? (also the open Phase 2 question; it
+  decides how the plugins find `libcansub_codec.so` and the certificate)
