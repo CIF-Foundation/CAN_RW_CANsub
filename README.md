@@ -6,6 +6,10 @@ LabVIEW class that reads and writes CAN frames with CCS CANsub devices. `CAN RW 
 
 The repository also contains the C++ library LabVIEW calls (`cansub_lv_wrapper`) and native installers for Windows, Linux, and Linux RT.
 
+## Native library used by the class today
+
+The class calls `libcansub_codec` (C source in `src/CANsub/c_client/c_functions/`). The binaries are not in git. Build and install steps: [`src/CANsub/c_client/c_functions/README.md`](src/CANsub/c_client/c_functions/README.md), "Build the native library (quick guide)".
+
 ## Installation
 
 Install [CIF CAN RW Core](https://github.com/CIF-Foundation/CAN_RW_Core) first. This package requires `CIF_Foundation_lib_CIF_CAN_RW_Core` 1.4.0.3 or later.
