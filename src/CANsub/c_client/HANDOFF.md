@@ -20,7 +20,7 @@ in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 
 ## 2. Next steps (in order)
 
-1. Open items of stage 3 (`PLUGIN_TEST.md`, "Open after stage 3").
+1. Open items of stage 3 (`BACKLOG.md`, section 1).
 2. Packaging of the native library: name, install path, installers (`CIF_BUILD.md`, R10).
 3. Phase 2: reader and writer on the same channel (shared connection).
 
@@ -38,6 +38,7 @@ in `README.md`, "Where you are", and in `CIF_BUILD.md`, section 6.
 | Step list and status | `README.md` (this folder), "Where you are" |
 | CIF plan, class design, design points, steps | `CIF_BUILD.md` |
 | Plugin test plan | `PLUGIN_TEST.md` |
+| Open items with type of work and time estimates, map of the device API calls | `BACKLOG.md` |
 | API plan, proof results, backlog B1 to B16 | `API_BUILD.md` |
 | Layers, rules, error codes | `ARCHITECTURE.md` |
 | Shared VIs C1 to C7, LabVIEW style rules | `..\common\COMMON_BUILD.md` |
